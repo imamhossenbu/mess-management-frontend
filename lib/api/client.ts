@@ -1,4 +1,4 @@
-// src/lib/api/client.ts
+// lib/api/client.ts
 import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
@@ -13,9 +13,21 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
+      // Add token
       const token = localStorage.getItem("accessToken");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      }
+
+      // ✅ Add mess ID only if it exists and not a public route
+      const messId = localStorage.getItem("currentMessId");
+      const isPublicRoute =
+        config.url?.includes("/auth") ||
+        config.url === "/mess" ||
+        config.url === "/mess/user/messes";
+
+      if (messId && !isPublicRoute) {
+        config.headers["X-Mess-Id"] = messId;
       }
     }
     return config;
