@@ -11,7 +11,9 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function LoginPage() {
+import { Suspense } from "react";
+
+function LoginPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -198,11 +200,11 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (fieldErrors.password) {
-                      setFieldErrors({ ...fieldErrors, password: undefined });
-                    }
-                    if (error) setError(null);
+                     setPassword(e.target.value);
+                     if (fieldErrors.password) {
+                       setFieldErrors({ ...fieldErrors, password: undefined });
+                     }
+                     if (error) setError(null);
                   }}
                   placeholder="••••••••"
                   className={`w-full px-4 pr-12 py-3 bg-white border ${
@@ -254,5 +256,19 @@ export default function LoginPage() {
         </p>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+          <div className="animate-pulse text-slate-500">Loading auth...</div>
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
   );
 }
