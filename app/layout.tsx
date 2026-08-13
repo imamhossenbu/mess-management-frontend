@@ -1,9 +1,10 @@
-// src/app/layout.tsx
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/common/QueryProvider";
 import { ToastProvider } from "@/components/common/ToastProvider";
+import { AuthProvider } from "@/components/common/AuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,8 +22,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <QueryProvider>
-          <ToastProvider />
-          {children}
+          <AuthProvider>
+            <ToastProvider />
+            {children}
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>

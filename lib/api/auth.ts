@@ -1,5 +1,4 @@
-/* eslint-disable @next/next/no-location-assign-relative-destination */
-// src/lib/api/auth.ts
+// lib/api/auth.ts
 import { apiClient } from "./client";
 
 export interface LoginData {
@@ -12,8 +11,6 @@ export interface RegisterData {
   email: string;
   password: string;
   phone?: string;
-  role?: string;
-  roomNumber?: string;
 }
 
 export interface AuthResponse {
@@ -23,9 +20,8 @@ export interface AuthResponse {
     id: string;
     name: string;
     email: string;
-    phone: string; // ✅ required korlam, kintu empty string dite pari
+    phone: string;
     role: string;
-    roomNumber?: string;
     profileImage?: string;
   };
 }

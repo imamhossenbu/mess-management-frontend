@@ -1,28 +1,39 @@
-// src/components/common/QueryProvider.tsx
+// components/common/QueryProvider.tsx
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactNode, useState } from "react";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { useState } from "react";
 
-export const QueryProvider = ({ children }: { children: ReactNode }) => {
+export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Keep the small mess dataset in cache while navigating between
-            // dashboard pages; this avoids repeating the same requests.
-            staleTime: 5 * 60 * 1000,
-            gcTime: 15 * 60 * 1000,
-            retry: 1,
-            refetchOnMount: false,
+            staleTime: 30 * 60 * 1000, // 30 minutes
+            gcTime: 60 * 60 * 1000, // 60 minutes
             refetchOnWindowFocus: false,
+            refetchOnMount: false,
+            refetchOnReconnect: false,
+            retry: 1,
+            retryDelay: 1000,
+            refetchInterval: false,
+            refetchIntervalInBackground: false,
+            // ✅ Don't refetch on mount
+            enabled: true,
+          },
+          mutations: {
+            retry: 0,
           },
         },
       }),
   );
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
-};
+}

@@ -2,13 +2,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface User {
+export interface User {
   id: string;
   name: string;
   phone: string;
   email?: string;
-  role: string;
-  roomNumber?: string;
+  role: "ADMIN" | "MANAGER" | "MEMBER";
   profileImage?: string;
 }
 
@@ -17,11 +16,12 @@ interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  _hasHydrated: boolean;
 
-  // Actions
   setAuth: (user: User, token: string) => void;
   setUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
+  setHydrated: () => void;
   logout: () => void;
   hydrate: () => void;
 }
@@ -32,47 +32,64 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       isAuthenticated: false,
-      isLoading: false,
+      isLoading: true,
+      _hasHydrated: false,
 
       setAuth: (user, token) => {
+        console.log("🔐 setAuth called - User:", user?.name);
         set({
           user,
           accessToken: token,
           isAuthenticated: true,
           isLoading: false,
+          _hasHydrated: true,
         });
-        // Also set in localStorage for API client
+
         if (typeof window !== "undefined") {
           localStorage.setItem("accessToken", token);
           localStorage.setItem("user", JSON.stringify(user));
           document.cookie = `accessToken=${token}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `user=${JSON.stringify(user)}; path=/; max-age=604800; SameSite=Lax`;
         }
       },
 
       setUser: (user) => {
+        const currentUser = get().user;
+        if (JSON.stringify(currentUser) === JSON.stringify(user)) {
+          return;
+        }
         set({ user });
         if (typeof window !== "undefined") {
           localStorage.setItem("user", JSON.stringify(user));
+          document.cookie = `user=${JSON.stringify(user)}; path=/; max-age=604800; SameSite=Lax`;
         }
       },
 
       setLoading: (loading) => {
+        const currentLoading = get().isLoading;
+        if (currentLoading === loading) return;
         set({ isLoading: loading });
       },
 
-      // ✅ Logout - clears everything
+      setHydrated: () => {
+        console.log("💧 Hydration complete");
+        set({ _hasHydrated: true, isLoading: false });
+      },
+
       logout: () => {
         set({
           user: null,
           accessToken: null,
           isAuthenticated: false,
           isLoading: false,
+          _hasHydrated: true,
         });
 
         if (typeof window !== "undefined") {
           localStorage.removeItem("accessToken");
           localStorage.removeItem("user");
           document.cookie = "accessToken=; path=/; max-age=0";
+          document.cookie = "user=; path=/; max-age=0";
         }
       },
 
@@ -80,13 +97,30 @@ export const useAuthStore = create<AuthState>()(
         if (typeof window !== "undefined") {
           const token = localStorage.getItem("accessToken");
           const userStr = localStorage.getItem("user");
+          console.log(
+            "💧 Hydrating - Token:",
+            token ? "✅ Exists" : "❌ Missing",
+          );
+
           if (token && userStr) {
             try {
               const user = JSON.parse(userStr);
-              set({ user, accessToken: token, isAuthenticated: true });
-            } catch {
-              // Invalid user data
+              console.log("✅ Parsed User:", user?.name);
+              set({
+                user,
+                accessToken: token,
+                isAuthenticated: true,
+                isLoading: false,
+                _hasHydrated: true,
+              });
+              console.log("✅ Hydration successful - User:", user?.name);
+            } catch (error) {
+              console.error("❌ Hydration failed:", error);
+              set({ isLoading: false, _hasHydrated: true });
             }
+          } else {
+            console.log("ℹ️ No stored auth data found");
+            set({ isLoading: false, _hasHydrated: true });
           }
         }
       },
@@ -99,11 +133,10 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {
+        console.log("🔄 Rehydrating storage...");
         if (state?.accessToken) {
-          localStorage.setItem("accessToken", state.accessToken);
-          if (state.user) {
-            localStorage.setItem("user", JSON.stringify(state.user));
-          }
+          console.log("✅ Rehydration found token");
+          console.log("✅ User from rehydrate:", state?.user?.name);
         }
       },
     },

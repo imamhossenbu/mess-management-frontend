@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // components/layout/Sidebar.tsx
 "use client";
 
@@ -6,23 +7,34 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutDashboard, Users, Utensils, ShoppingBag, Package,
-  FileText, CreditCard, Store, Calendar, User, LogOut,
-  Crown, Shield, UserCheck, Bell,
-  PanelLeftClose, PanelLeftOpen,
+  LayoutDashboard,
+  Users,
+  Utensils,
+  ShoppingBag,
+  Package,
+  FileText,
+  CreditCard,
+  Store,
+  Calendar,
+  User,
+  LogOut,
+  Crown,
+  Shield,
+  UserCheck,
+  Bell,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
-/* ─── Nav definitions per mess role ─── */
 type NavItem = { icon: React.ElementType; label: string; href: string };
 type NavGroup = { label: string; items: NavItem[] };
 
-const SUPER_ADMIN_NAV: NavGroup[] = [
+// ✅ Updated NAV - Users added for all roles
+const ADMIN_NAV: NavGroup[] = [
   {
     label: "Overview",
-    items: [
-      { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-    ],
+    items: [{ icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" }],
   },
   {
     label: "Management",
@@ -44,18 +56,14 @@ const SUPER_ADMIN_NAV: NavGroup[] = [
   },
   {
     label: "Account",
-    items: [
-      { icon: User, label: "Profile", href: "/profile" },
-    ],
+    items: [{ icon: User, label: "Profile", href: "/profile" }],
   },
 ];
 
 const MANAGER_NAV: NavGroup[] = [
   {
     label: "Overview",
-    items: [
-      { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-    ],
+    items: [{ icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" }],
   },
   {
     label: "Operations",
@@ -76,22 +84,19 @@ const MANAGER_NAV: NavGroup[] = [
   },
   {
     label: "Account",
-    items: [
-      { icon: User, label: "Profile",       href: "/profile" },
-    ],
+    items: [{ icon: User, label: "Profile", href: "/profile" }],
   },
 ];
 
 const MEMBER_NAV: NavGroup[] = [
   {
     label: "Overview",
-    items: [
-      { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-    ],
+    items: [{ icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" }],
   },
   {
     label: "My Mess",
     items: [
+      { icon: Users, label: "Members", href: "/users" }, // ✅ Added Users
       { icon: Utensils, label: "Meals", href: "/meals" },
       { icon: ShoppingBag, label: "Bazar", href: "/marketings" },
       { icon: CreditCard, label: "Payments", href: "/payments" },
@@ -100,22 +105,40 @@ const MEMBER_NAV: NavGroup[] = [
   },
   {
     label: "Account",
-    items: [
-      { icon: User, label: "Profile", href: "/profile" },
-    ],
+    items: [{ icon: User, label: "Profile", href: "/profile" }],
   },
 ];
 
 const ROLE_BRAND = {
-  SUPER_ADMIN: { label: "Super Admin", icon: Crown, gradient: "from-amber-500 to-orange-500", accent: "bg-amber-500" },
-  ADMIN: { label: "Admin", icon: Shield, gradient: "from-violet-500 to-purple-600", accent: "bg-violet-500" },
-  MANAGER: { label: "Manager", icon: Shield, gradient: "from-blue-500 to-indigo-600", accent: "bg-blue-500" },
-  MEMBER: { label: "Member", icon: UserCheck, gradient: "from-emerald-500 to-teal-600", accent: "bg-emerald-500" },
+  SUPER_ADMIN: {
+    label: "Super Admin",
+    icon: Crown,
+    gradient: "from-amber-500 to-orange-500",
+    accent: "bg-amber-500",
+  },
+  ADMIN: {
+    label: "Admin",
+    icon: Shield,
+    gradient: "from-violet-500 to-purple-600",
+    accent: "bg-violet-500",
+  },
+  MANAGER: {
+    label: "Manager",
+    icon: Shield,
+    gradient: "from-blue-500 to-indigo-600",
+    accent: "bg-blue-500",
+  },
+  MEMBER: {
+    label: "Member",
+    icon: UserCheck,
+    gradient: "from-emerald-500 to-teal-600",
+    accent: "bg-emerald-500",
+  },
 };
 
 function getNavGroups(role: string): NavGroup[] {
-  if (role === "SUPER_ADMIN") return SUPER_ADMIN_NAV;
-  if (role === "MANAGER" || role === "ADMIN") return MANAGER_NAV;
+  if (role === "SUPER_ADMIN" || role === "ADMIN") return ADMIN_NAV;
+  if (role === "MANAGER") return MANAGER_NAV;
   return MEMBER_NAV;
 }
 
@@ -143,19 +166,20 @@ export const Sidebar = () => {
     });
   };
 
-  // Derive role directly from user — no mess fetch needed in sidebar
   const role = user?.role ?? "MEMBER";
-  const brand = ROLE_BRAND[role as keyof typeof ROLE_BRAND] ?? ROLE_BRAND.MEMBER;
+  const brand =
+    ROLE_BRAND[role as keyof typeof ROLE_BRAND] ?? ROLE_BRAND.MEMBER;
   const navGroups = getNavGroups(role);
   const BrandIcon = brand.icon;
 
-  const initials = user?.name
-    ?.trim()
-    .split(/\s+/)
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase() ?? "?";
+  const initials =
+    user?.name
+      ?.trim()
+      .split(/\s+/)
+      .map((p) => p[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() ?? "?";
 
   return (
     <motion.aside
@@ -177,7 +201,9 @@ export const Sidebar = () => {
               transition={{ duration: 0.25 }}
               className="flex items-center gap-2.5 overflow-hidden whitespace-nowrap min-w-0"
             >
-              <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${brand.gradient} flex items-center justify-center shrink-0 shadow-md`}>
+              <div
+                className={`w-8 h-8 rounded-lg bg-gradient-to-br ${brand.gradient} flex items-center justify-center shrink-0 shadow-md`}
+              >
                 <BrandIcon className="w-4 h-4 text-white" />
               </div>
               <div className="min-w-0">
@@ -205,7 +231,11 @@ export const Sidebar = () => {
             transition={{ duration: 0.22 }}
             className="flex items-center justify-center"
           >
-            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+            {collapsed ? (
+              <PanelLeftOpen size={16} />
+            ) : (
+              <PanelLeftClose size={16} />
+            )}
           </motion.span>
         </button>
       </div>
@@ -229,7 +259,8 @@ export const Sidebar = () => {
             </AnimatePresence>
 
             {group.items.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+              const isActive =
+                pathname === item.href || pathname?.startsWith(item.href + "/");
               const Icon = item.icon;
 
               return (
@@ -239,14 +270,19 @@ export const Sidebar = () => {
                     onMouseEnter={() => collapsed && setHoveredHref(item.href)}
                     onMouseLeave={() => setHoveredHref(null)}
                     className={`group flex items-center gap-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 outline-none ${
-                      collapsed ? "justify-center w-10 h-10 mx-auto" : "px-2.5 py-2.5 w-full"
+                      collapsed
+                        ? "justify-center w-10 h-10 mx-auto"
+                        : "px-2.5 py-2.5 w-full"
                     } ${
                       isActive
                         ? `bg-gradient-to-r ${brand.gradient} text-white shadow-md`
                         : "text-slate-400 hover:text-white hover:bg-white/[0.07]"
                     }`}
                   >
-                    <Icon size={16} className={`shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`} />
+                    <Icon
+                      size={16}
+                      className={`shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}
+                    />
                     <AnimatePresence initial={false}>
                       {!collapsed && (
                         <motion.span
@@ -286,7 +322,6 @@ export const Sidebar = () => {
 
       {/* ── Footer ── */}
       <div className="px-2.5 pb-4 pt-3 border-t border-white/[0.07] flex flex-col gap-1">
-        {/* User card */}
         <AnimatePresence initial={false}>
           {!collapsed && user && (
             <motion.div
@@ -296,12 +331,18 @@ export const Sidebar = () => {
               transition={{ duration: 0.18 }}
               className="flex items-center gap-2.5 px-2.5 py-2.5 mb-1 rounded-lg bg-white/[0.05] border border-white/[0.07]"
             >
-              <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${brand.gradient} flex items-center justify-center text-white text-[11px] font-bold shrink-0`}>
+              <div
+                className={`w-7 h-7 rounded-full bg-gradient-to-br ${brand.gradient} flex items-center justify-center text-white text-[11px] font-bold shrink-0`}
+              >
                 {initials}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[12px] text-white font-semibold truncate leading-tight">{user.name}</p>
-                <p className="text-[10px] text-slate-400 capitalize leading-tight mt-0.5">{brand.label}</p>
+                <p className="text-[12px] text-white font-semibold truncate leading-tight">
+                  {user.name}
+                </p>
+                <p className="text-[10px] text-slate-400 capitalize leading-tight mt-0.5">
+                  {brand.label}
+                </p>
               </div>
             </motion.div>
           )}

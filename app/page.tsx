@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
@@ -12,7 +13,6 @@ export default function HomePage() {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        // Single-mess mode: always go straight to dashboard
         router.push("/dashboard");
       } else {
         router.push("/login");
@@ -21,10 +21,19 @@ export default function HomePage() {
   }, [isAuthenticated, isLoading, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-slate-500 font-medium">Loading...</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative">
+          <div className="w-16 h-16 rounded-full border-4 border-slate-200">
+            <div className="w-full h-full rounded-full border-4 border-primary-500 border-t-transparent animate-spin" />
+          </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
+          </div>
+        </div>
+        <p className="text-sm text-slate-500 font-medium animate-pulse">
+          Loading...
+        </p>
       </div>
     </div>
   );

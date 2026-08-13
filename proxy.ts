@@ -1,4 +1,4 @@
-// proxy.ts (Root Directory)
+// proxy.ts (or middleware.ts - but proxy.ts is correct for Next.js 16+)
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -24,6 +24,7 @@ const protectedRoutes = [
   "/profile",
 ];
 
+// ✅ Change function name from "middleware" to "proxy"
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -59,6 +60,7 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+// ✅ Also update the config if needed - it stays the same
 export const config = {
   matcher: [
     "/",

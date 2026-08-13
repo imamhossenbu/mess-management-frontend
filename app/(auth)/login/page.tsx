@@ -1,16 +1,15 @@
+// app/(auth)/login/page.tsx
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/no-unescaped-entities */
-// app/(auth)/login/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-
 import { Suspense } from "react";
 
 function LoginPageContent() {
@@ -23,25 +22,23 @@ function LoginPageContent() {
     password?: string;
   }>({});
 
-  // isLoading ekhane r use korchi na — oita profile query-r sathe mixed thake
-  // tai full page-ke unmount kore dito. Login button-er nijer state ekhon
-  // login.isPending diye track hocche.
   const { login } = useAuth();
-
   const searchParams = useSearchParams();
-
-  // TanStack Query v5 hole "isPending", v4 hole "isLoading" — je version
-  // package.json e ache shei onujayi eituku khali change korle hobe.
   const isSubmitting = login.isPending;
 
+  // URL থেকে error message পড়ুন
   useEffect(() => {
     const errorParam = searchParams.get("error");
+    const messageParam = searchParams.get("message");
+
     if (errorParam === "google_auth_failed") {
       setError("Google authentication failed. Please try again.");
     } else if (errorParam === "invalid_data") {
       setError("Invalid login data. Please try again.");
     } else if (errorParam === "no_token") {
       setError("No authentication token received. Please try again.");
+    } else if (messageParam) {
+      setError(decodeURIComponent(messageParam));
     }
   }, [searchParams]);
 
@@ -78,7 +75,8 @@ function LoginPageContent() {
       {
         onError: (error: any) => {
           const message =
-            error.response?.data?.message || "Login failed. Please try again.";
+            error.response?.data?.message ||
+            "Invalid email or password. Please try again.";
           setError(message);
         },
       },
@@ -89,44 +87,47 @@ function LoginPageContent() {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
   };
 
-  // ❌ Age ekhane "if (isLoading) return <full page spinner>" chilo.
-  // Eta form + error box shoho puro page-take unmount kore dito, tai
-  // wrong email/password dile error dekha jacchilo na. Shomoshsha
-  // fix korte eita shorasori remove kora hoyeche — spinner ekhon
-  // shudhu submit button-er bhitore dekhabe (niche).
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
         className="w-full max-w-sm"
       >
+        {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-primary-500 rounded-2xl text-white text-2xl font-bold mb-3">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl text-white text-2xl font-bold mb-3 shadow-lg shadow-primary-200"
+          >
             M
-          </div>
+          </motion.div>
           <h1 className="text-2xl font-bold text-slate-900">Welcome Back</h1>
           <p className="text-slate-500 text-sm mt-1">Sign in to your account</p>
         </div>
 
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          {/* Error Message */}
           {error && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
               className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm flex items-start gap-2"
             >
-              <span className="mt-0.5">⚠️</span>
+              <span className="mt-0.5 text-lg">⚠️</span>
               <span>{error}</span>
             </motion.div>
           )}
 
+          {/* Google Button */}
           <button
             onClick={handleGoogleLogin}
             disabled={isSubmitting}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -158,6 +159,7 @@ function LoginPageContent() {
             </div>
           </div>
 
+          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -180,7 +182,13 @@ function LoginPageContent() {
                 disabled={isSubmitting}
               />
               {fieldErrors.email && (
-                <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>
+                <motion.p
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-1 text-xs text-red-500"
+                >
+                  {fieldErrors.email}
+                </motion.p>
               )}
             </div>
 
@@ -193,11 +201,11 @@ function LoginPageContent() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => {
-                     setPassword(e.target.value);
-                     if (fieldErrors.password) {
-                       setFieldErrors({ ...fieldErrors, password: undefined });
-                     }
-                     if (error) setError(null);
+                    setPassword(e.target.value);
+                    if (fieldErrors.password) {
+                      setFieldErrors({ ...fieldErrors, password: undefined });
+                    }
+                    if (error) setError(null);
                   }}
                   placeholder="••••••••"
                   className={`w-full px-4 pr-12 py-3 bg-white border ${
@@ -218,31 +226,48 @@ function LoginPageContent() {
                 </button>
               </div>
               {fieldErrors.password && (
-                <p className="mt-1 text-xs text-red-500">
+                <motion.p
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-1 text-xs text-red-500"
+                >
                   {fieldErrors.password}
-                </p>
+                </motion.p>
               )}
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium hover:from-primary-600 hover:to-primary-700 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-200"
             >
               {isSubmitting ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Signing in...</span>
+                </>
               ) : (
                 "Sign In"
               )}
             </button>
           </form>
+
+          {/* Forgot Password Link */}
+          <div className="text-right mt-4">
+            <Link
+              href="/forgot-password"
+              className="text-xs text-slate-400 hover:text-primary-500 transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
           Don't have an account?{" "}
           <Link
             href="/register"
-            className="text-primary-500 hover:text-primary-600 font-semibold"
+            className="text-primary-500 hover:text-primary-600 font-semibold transition-colors"
           >
             Create one now
           </Link>
@@ -257,7 +282,10 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-slate-50">
-          <div className="animate-pulse text-slate-500">Loading auth...</div>
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+            <p className="text-sm text-slate-500">Loading...</p>
+          </div>
         </div>
       }
     >

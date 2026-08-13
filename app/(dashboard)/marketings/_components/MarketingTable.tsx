@@ -1,0 +1,154 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// app/(dashboard)/marketings/_components/MarketingTable.tsx
+"use client";
+
+import { Card } from "@/components/ui/Card";
+import { Trash2, ShoppingBag, Edit2 } from "lucide-react";
+import { format } from "date-fns";
+
+interface MarketingTableProps {
+  data: any;
+  canEdit: boolean;
+  onDelete: (id: string) => void;
+  onEdit?: (item: any) => void;
+  isDeleting: boolean;
+}
+
+export function MarketingTable({
+  data,
+  canEdit,
+  onDelete,
+  onEdit,
+  isDeleting,
+}: MarketingTableProps) {
+  // ✅ Check if data has marketings array
+  const marketings = data?.marketings || [];
+
+  console.log("📊 MarketingTable data:", data);
+  console.log("📊 Marketings array:", marketings);
+
+  const getPaymentTypeColor = (type: string) => {
+    switch (type) {
+      case "CASH":
+        return "bg-blue-50 text-blue-600 border-blue-200";
+      case "DEBT":
+        return "bg-rose-50 text-rose-600 border-rose-200";
+      case "SELF":
+        return "bg-purple-50 text-purple-600 border-purple-200";
+      default:
+        return "bg-slate-50 text-slate-600 border-slate-200";
+    }
+  };
+
+  if (marketings.length === 0) {
+    return (
+      <Card className="p-12 bg-white border border-slate-100">
+        <div className="text-center">
+          <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-400 font-medium">
+            No bazar purchases logged
+          </p>
+          <p className="text-sm text-slate-300 mt-1">
+            Start logging your bazar expenses
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-6 bg-white border border-slate-100 overflow-hidden">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <ShoppingBag className="w-4 h-4 text-primary-500" />
+          Bazar Sheet
+          <span className="text-xs font-normal text-slate-400 ml-2">
+            ({marketings.length} entries)
+          </span>
+        </h2>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <th className="pb-3 pl-2">Date</th>
+              <th className="pb-3">Items</th>
+              <th className="pb-3">Added By</th>
+              <th className="pb-3">Payment</th>
+              <th className="pb-3 text-right">Amount</th>
+              {canEdit && <th className="pb-3 text-right pr-2">Actions</th>}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50">
+            {marketings.map((item: any) => (
+              <tr key={item.id} className="hover:bg-slate-50/50 transition">
+                <td className="py-3 pl-2 text-sm text-slate-600">
+                  {format(new Date(item.date), "MMM dd, yyyy")}
+                </td>
+                <td className="py-3">
+                  <p className="font-semibold text-slate-800 text-sm">
+                    {item.items?.length > 1
+                      ? `${item.items.length} items`
+                      : item.items?.[0]?.itemName || "N/A"}
+                  </p>
+                  {item.shopName && (
+                    <p className="text-[10px] text-slate-400">
+                      Shop: {item.shopName}
+                    </p>
+                  )}
+                  {item.note && (
+                    <p className="text-[10px] text-slate-400 italic">
+                      {item.note}
+                    </p>
+                  )}
+                </td>
+                <td className="py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 text-xs font-semibold">
+                      {item.userName?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">
+                      {item.userName || "Unknown"}
+                    </span>
+                  </div>
+                </td>
+                <td className="py-3">
+                  <span
+                    className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getPaymentTypeColor(item.paymentType)}`}
+                  >
+                    {item.paymentType}
+                  </span>
+                </td>
+                <td className="py-3 text-right font-bold text-slate-800 text-sm">
+                  ৳ {Number(item.totalAmount).toLocaleString()}
+                </td>
+                {canEdit && (
+                  <td className="py-3 text-right pr-2">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => onEdit?.(item)}
+                        className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition"
+                        title="Edit"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(item.id)}
+                        disabled={isDeleting}
+                        className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition disabled:opacity-50"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}

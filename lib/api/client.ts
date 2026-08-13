@@ -7,34 +7,48 @@ export const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
   },
+  timeout: 30000,
+  withCredentials: true,
 });
 
+// Request Interceptor - Token যোগ করুন
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
-      // Add token
+      // ✅ Token নিন localStorage থেকে
       const token = localStorage.getItem("accessToken");
+      console.log(
+        "🔑 Token from localStorage:",
+        token ? "Exists" : "Not found",
+      );
+
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      } else {
+        console.warn("⚠️ No token found in localStorage");
       }
-
-      const messId = localStorage.getItem("currentMessId");
-      if (messId) config.headers["X-Mess-Id"] = messId;
     }
     return config;
   },
   (error) => Promise.reject(error),
 );
 
+// Response Interceptor - 401 handle করুন
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
-      // A number of mess-scoped endpoints return 401 when the user does not
-      // yet have a selected mess. That is not proof that the JWT is invalid,
-      // so never delete a valid session from this global interceptor.
-      console.warn("Unauthorized API request", error.config?.url);
+      const path = window.location.pathname;
+      console.warn("🔴 401 Unauthorized:", error.config?.url);
+
+      // Login page এ না থাকলে redirect করুন
+      if (!path.includes("/login") && !path.includes("/auth/callback")) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   },

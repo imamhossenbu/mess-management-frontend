@@ -1,37 +1,105 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// src/lib/api/inventory.ts
+// lib/api/inventory.ts
 import { apiClient } from "./client";
 
-export interface Inventory {
+export interface InventoryItem {
   id: string;
-  type: "MEAT" | "FISH";
+  name: string;
+  category: string;
+  unit: string;
   quantity: number;
+  minStockLevel: number;
+  purchasePrice?: number;
+  sellingPrice?: number;
   lastUpdated: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InventoryLog {
+  id: string;
+  inventoryItemId: string;
+  change: number;
+  previousQuantity: number;
+  newQuantity: number;
+  reason: string;
+  note?: string;
+  date: string;
+  createdAt: string;
+}
+
+export interface CreateInventoryItemData {
+  name: string;
+  category: string;
+  unit: string;
+  quantity: number;
+  minStockLevel: number;
+  purchasePrice?: number;
+  sellingPrice?: number;
+}
+
+export interface AddInventoryData {
+  itemName: string;
+  quantity: number;
+  unit: string;
+  marketingItemId?: string;
+  note?: string;
+}
+
+export interface RemoveInventoryData {
+  itemName: string;
+  quantity: number;
+  note?: string;
+}
+
+export interface SetInventoryData {
+  itemName: string;
+  quantity: number;
+  note?: string;
 }
 
 export const inventoryApi = {
-  getAll: () => apiClient.get<Inventory[]>("/inventory"),
+  // Get all inventory items
+  getAll: () => apiClient.get<Record<string, InventoryItem[]>>("/inventory"),
 
+  // Get inventory summary
   getSummary: () => apiClient.get("/inventory/summary"),
 
-  getByType: (type: string) => apiClient.get(`/inventory/type/${type}`),
+  // Get by category
+  getByCategory: (category: string) =>
+    apiClient.get<InventoryItem[]>(`/inventory/category/${category}`),
 
-  getLogs: (type?: string) =>
-    apiClient.get(`/inventory/logs${type ? `?type=${type}` : ""}`),
+  // Get single item
+  getItem: (name: string) =>
+    apiClient.get<InventoryItem>(`/inventory/item/${name}`),
 
-  checkAvailability: (type: string, quantity: number) =>
-    apiClient.get(`/inventory/check/${type}?quantity=${quantity}`),
+  // Create inventory item
+  createItem: (data: CreateInventoryItemData) =>
+    apiClient.post<InventoryItem>("/inventory/items", data),
 
-  add: (data: { type: string; quantity: number; note?: string }) =>
-    apiClient.post("/inventory/add", data),
+  // Update inventory item
+  updateItem: (name: string, data: Partial<CreateInventoryItemData>) =>
+    apiClient.patch<InventoryItem>(`/inventory/items/${name}`, data),
 
-  remove: (data: { type: string; quantity: number; note?: string }) =>
+  // Add inventory
+  add: (data: AddInventoryData) => apiClient.post("/inventory/add", data),
+
+  // Remove inventory
+  remove: (data: RemoveInventoryData) =>
     apiClient.post("/inventory/remove", data),
 
-  set: (data: { type: string; quantity: number; note?: string }) =>
-    apiClient.patch("/inventory/set", data),
+  // Set inventory (manual)
+  set: (data: SetInventoryData) => apiClient.post("/inventory/set", data),
 
-  bulkAdd: (items: any[]) => apiClient.post("/inventory/bulk-add", items),
+  // Get stock logs
+  getLogs: (itemName?: string) => {
+    const url = itemName
+      ? `/inventory/logs?itemName=${itemName}`
+      : "/inventory/logs";
+    return apiClient.get<InventoryLog[]>(url);
+  },
 
-  bulkRemove: (items: any[]) => apiClient.post("/inventory/bulk-remove", items),
+  // Check availability
+  checkAvailability: (itemName: string, quantity: number) =>
+    apiClient.get(`/inventory/check/${itemName}?quantity=${quantity}`),
 };
