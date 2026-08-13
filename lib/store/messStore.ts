@@ -42,11 +42,18 @@ export const useMessStore = create<MessState>()(
       },
 
       setUserMesses: (messes) => {
-        set({ userMesses: messes });
-        if (!get().currentMess && messes.length > 0) {
-          set({ currentMess: messes[0] });
-          if (typeof window !== "undefined") {
-            localStorage.setItem("currentMessId", messes[0].id);
+        const persistedMess = get().currentMess;
+        const currentMess =
+          messes.find((mess) => mess.id === persistedMess?.id) ??
+          messes[0] ??
+          null;
+
+        set({ userMesses: messes, currentMess });
+        if (typeof window !== "undefined") {
+          if (currentMess) {
+            localStorage.setItem("currentMessId", currentMess.id);
+          } else {
+            localStorage.removeItem("currentMessId");
           }
         }
       },

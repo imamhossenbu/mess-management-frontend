@@ -74,8 +74,8 @@ export const messApi = {
   deleteMess: (id: string) => apiClient.delete(`/mess/${id}`),
 
   // Get members
-  getMembers: (messId: string) =>
-    apiClient.get<Member[]>(`/mess/${messId}/members`),
+  // Single-mess mode: all accounts are the mess members.
+  getMembers: (_messId?: string) => apiClient.get<Member[]>("/users"),
 
   // Add member
   addMember: (messId: string, data: { userId: string; role?: string }) =>

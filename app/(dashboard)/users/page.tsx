@@ -13,7 +13,13 @@ import toast from "react-hot-toast";
 
 export default function UsersPage() {
   const { currentMess, useGetMembers, addMember, removeMember, updateMemberRole } = useMess();
-  const { isManager, user: currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
+
+  // Use mess-level role for permission checks (not system role)
+  const messRole = (currentMess as any)?.role ?? "MEMBER";
+  const isSuperAdmin = messRole === "SUPER_ADMIN";
+  const isManager = messRole === "SUPER_ADMIN" || messRole === "ADMIN" || messRole === "MANAGER";
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedRole, setSelectedRole] = useState("MEMBER");
@@ -405,21 +411,30 @@ export default function UsersPage() {
                   </div>
                 </div>
 
-                {/* Actions Block */}
+                {/* Actions Block: Add/Remove for managers, Role change only for SUPER_ADMIN */}
                 {isManager && !isMe && (
                   <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-400 font-semibold">Change Role:</span>
-                      <select
-                        value={member.role}
-                        onChange={(e) => handleRoleChange(member.userId, e.target.value)}
-                        className="px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none"
-                      >
-                        <option value="MEMBER">Member</option>
-                        <option value="ADMIN">Admin</option>
-                        <option value="SUPER_ADMIN">Super Admin</option>
-                      </select>
-                    </div>
+                    {isSuperAdmin && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400 font-semibold">Change Role:</span>
+                        <select
+                          value={member.role}
+                          onChange={(e) => handleRoleChange(member.userId, e.target.value)}
+                          className="px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none"
+                        >
+                          <option value="MEMBER">Member</option>
+                          <option value="ADMIN">Admin</option>
+                          <option value="SUPER_ADMIN">Super Admin</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {!isSuperAdmin && (
+                      <div className="flex items-center gap-1.5">
+                        <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="text-xs text-slate-400">{member.role?.toLowerCase()}</span>
+                      </div>
+                    )}
 
                     <button
                       onClick={() => handleRemoveMember(member.userId)}

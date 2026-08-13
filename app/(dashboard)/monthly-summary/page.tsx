@@ -1,7 +1,6 @@
 // app/(dashboard)/monthly-summary/page.tsx
 "use client";
 
-import { useMess } from "@/lib/hooks/useMess";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -12,7 +11,6 @@ import { format } from "date-fns";
 import toast from "react-hot-toast";
 
 export default function MonthlySummaryPage() {
-  const { currentMess } = useMess();
   const { isManager } = useAuth();
   
   // Date states
@@ -21,7 +19,7 @@ export default function MonthlySummaryPage() {
 
   // Fetch monthly summary
   const { data: summary, isLoading, refetch } = useQuery({
-    queryKey: ["monthly-summary-sheet", currentMess?.id, selectedYear, selectedMonth],
+    queryKey: ["monthly-summary-sheet", selectedYear, selectedMonth],
     queryFn: async () => {
       try {
         const res = await monthlySummaryApi.getByMonth(selectedYear, selectedMonth);
@@ -34,7 +32,7 @@ export default function MonthlySummaryPage() {
         throw err;
       }
     },
-    enabled: !!currentMess,
+    enabled: true,
     retry: false,
   });
 

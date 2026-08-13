@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // lib/hooks/useAuth.ts
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../store/authStore";
@@ -30,7 +30,7 @@ export const useAuth = () => {
       queryClient.setQueryData(["profile"], user);
       toast.success("Welcome back!");
       setLoading(false);
-      router.push("/select-mess");
+      router.push("/dashboard");
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Login failed");
@@ -48,33 +48,12 @@ export const useAuth = () => {
       queryClient.setQueryData(["profile"], user);
       toast.success("Account created successfully!");
       setLoading(false);
-      router.push("/select-mess");
+      router.push("/dashboard");
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Registration failed");
       setLoading(false);
     },
-  });
-
-  // ==================== PROFILE ====================
-
-  const profile = useQuery({
-    queryKey: ["profile"],
-    queryFn: async () => {
-      try {
-        const response = await authApi.getProfile();
-        const userData = response.data;
-        setUser(userData);
-        return userData;
-      } catch (error: any) {
-        if (error.response?.status === 401 || error.response?.status === 404) {
-          logout();
-        }
-        throw error;
-      }
-    },
-    enabled: isAuthenticated,
-    retry: false,
   });
 
   // ==================== LOGOUT ====================
@@ -84,6 +63,22 @@ export const useAuth = () => {
     queryClient.clear();
     toast.success("Logged out successfully");
     window.location.href = "/login";
+  };
+
+  // ==================== MANUAL PROFILE REFRESH ====================
+  // Only called explicitly (e.g., after profile update), NOT on every page load
+
+  const refreshProfile = async () => {
+    try {
+      const response = await authApi.getProfile();
+      const userData = response.data;
+      setUser(userData);
+      return userData;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        logout();
+      }
+    }
   };
 
   // ==================== ROLE CHECKS ====================
@@ -98,25 +93,18 @@ export const useAuth = () => {
   const isManager = user?.role === "MANAGER" || user?.role === "SUPER_ADMIN";
   const isMember = user?.role === "MEMBER";
 
-  // ==================== REFRESH ====================
-
-  const refreshProfile = () => {
-    return queryClient.invalidateQueries({ queryKey: ["profile"] });
-  };
-
   // ==================== RETURN ====================
 
   return {
     user,
     accessToken,
     isAuthenticated,
-    isLoading:
-      authLoading || profile.isLoading || login.isPending || register.isPending,
+    // Only true during active login/register mutations
+    isLoading: authLoading || login.isPending || register.isPending,
     login,
     register,
     logout,
     refreshProfile,
-    profile,
     hasRole,
     isSuperAdmin,
     isManager,

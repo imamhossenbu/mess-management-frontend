@@ -1,7 +1,7 @@
 /* src/app/globals.css */
 @import "tailwindcss";
 
-/* ✅ Clean & Minimal Theme */
+/* ✅ Theme */
 @theme {
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
@@ -28,22 +28,31 @@
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
+
+  /* Safe area for iOS notch */
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
 }
 
 /* ✅ Base Styles */
 @layer base {
   * {
     border-color: var(--color-slate-200);
+    box-sizing: border-box;
   }
   body {
     background-color: var(--color-slate-50);
     color: var(--color-slate-900);
     font-family: "Inter", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Smooth scroll */
+  html {
+    scroll-behavior: smooth;
   }
 }
 
-/* ✅ Clean Utilities */
+/* ✅ Component Utilities */
 @layer components {
   .glass {
     background-color: rgba(255, 255, 255, 0.6);
@@ -57,4 +66,41 @@
   .card-hover:hover {
     border-color: var(--color-primary-200);
   }
+
+  /* Custom scrollbar for sidebar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+  }
+
+  /* Gradient text utility */
+  .text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* Mobile safe padding */
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* ✅ Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeInUp {
+  animation: fadeInUp 0.35s ease forwards;
 }

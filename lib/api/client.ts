@@ -20,15 +20,6 @@ apiClient.interceptors.request.use(
       }
 
       // ✅ Add mess ID only if it exists and not a public route
-      const messId = localStorage.getItem("currentMessId");
-      const isPublicRoute =
-        config.url?.includes("/auth") ||
-        config.url === "/mess" ||
-        config.url === "/mess/user/messes";
-
-      if (messId && !isPublicRoute) {
-        config.headers["X-Mess-Id"] = messId;
-      }
     }
     return config;
   },
@@ -39,9 +30,10 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+      // A number of mess-scoped endpoints return 401 when the user does not
+      // yet have a selected mess. That is not proof that the JWT is invalid,
+      // so never delete a valid session from this global interceptor.
+      console.warn("Unauthorized API request", error.config?.url);
     }
     return Promise.reject(error);
   },

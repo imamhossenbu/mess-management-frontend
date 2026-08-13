@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import { Suspense } from "react";
 
@@ -26,20 +26,13 @@ function LoginPageContent() {
   // isLoading ekhane r use korchi na — oita profile query-r sathe mixed thake
   // tai full page-ke unmount kore dito. Login button-er nijer state ekhon
   // login.isPending diye track hocche.
-  const { login, isAuthenticated } = useAuth();
+  const { login } = useAuth();
 
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   // TanStack Query v5 hole "isPending", v4 hole "isLoading" — je version
   // package.json e ache shei onujayi eituku khali change korle hobe.
   const isSubmitting = login.isPending;
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/select-mess");
-    }
-  }, [isAuthenticated, router]);
 
   useEffect(() => {
     const errorParam = searchParams.get("error");

@@ -2,12 +2,11 @@
 // app/(auth)/register/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -25,18 +24,11 @@ export default function RegisterPage() {
 
   // isLoading (global, profile query-r sathe mixed) ekhane use korchi na,
   // shudhu register mutation-er nijer pending state use kora hocche.
-  const { register, isAuthenticated } = useAuth();
-  const router = useRouter();
+  const { register } = useAuth();
 
   // TanStack Query v5 hole "isPending", v4 hole "isLoading" —
   // je version tomar package.json e ache shei onujayi eituku change koro.
   const isSubmitting = register.isPending;
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/select-mess");
-    }
-  }, [isAuthenticated, router]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

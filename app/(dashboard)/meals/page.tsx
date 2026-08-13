@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/(dashboard)/meals/page.tsx
 "use client";
 
@@ -15,7 +17,7 @@ export default function MealsPage() {
   const { currentMess, useGetMembers } = useMess();
   const { isManager } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  
+
   // States for checkbox toggles (only modified by manager/admin)
   const [mealSelections, setMealSelections] = useState<{
     [userId: string]: { morning: boolean; lunch: boolean; dinner: boolean };
@@ -127,7 +129,7 @@ export default function MealsPage() {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          
+
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
             <CalendarIcon className="w-4 h-4 text-slate-400" />
             <span>{format(selectedDate, "EEE, MMM dd, yyyy")}</span>
@@ -210,12 +212,12 @@ export default function MealsPage() {
                     dinner: false,
                   };
                   const subtotal = (select.morning ? 1 : 0) + (select.lunch ? 1 : 0) + (select.dinner ? 1 : 0);
-                  
+
                   return (
                     <tr key={member.id} className="hover:bg-slate-50/50 transition">
                       <td className="py-3.5 pl-2">
                         <span className="font-semibold text-slate-800 text-sm">{member.userName}</span>
-                        <span className="block text-[10px] text-slate-400 capitalize">{member.role.toLowerCase()}</span>
+                        <span className="block text-[10px] text-slate-400 capitalize">{member?.role?.toLowerCase() ?? "member"}</span>
                       </td>
 
                       <td className="py-3.5 text-center">
