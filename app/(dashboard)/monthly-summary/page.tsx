@@ -3,6 +3,7 @@
 
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
+import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { monthlySummaryApi } from "@/lib/api/monthly-summary";
 import { useState } from "react";
@@ -21,16 +22,8 @@ export default function MonthlySummaryPage() {
   const { data: summary, isLoading, refetch } = useQuery({
     queryKey: ["monthly-summary-sheet", selectedYear, selectedMonth],
     queryFn: async () => {
-      try {
-        const res = await monthlySummaryApi.getByMonth(selectedYear, selectedMonth);
-        return res.data;
-      } catch (err: any) {
-        if (err.response?.status === 404) {
-          // If summary is not generated, return null instead of throwing to show "Generate" prompt
-          return null;
-        }
-        throw err;
-      }
+      const res = await monthlySummaryApi.getByMonth(selectedYear, selectedMonth);
+      return res.data;
     },
     enabled: true,
     retry: false,
@@ -114,10 +107,11 @@ export default function MonthlySummaryPage() {
       </div>
 
       {isLoading ? (
-        <div className="py-20 flex justify-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary-500 border-t-transparent" />
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">{[0, 1, 2, 3].map((item) => <SkeletonCard key={item} />)}</div>
+          <Skeleton className="h-80 w-full" />
         </div>
-      ) : summary ? (
+      ) : summary?.isGenerated ? (
         /* Summary sheet generated - show dashboard and details */
         <div className="space-y-8 animate-fadeIn">
           {/* Key Metrics cards */}

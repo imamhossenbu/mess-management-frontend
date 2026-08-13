@@ -4,7 +4,7 @@
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
-import { Bell, Check, CheckCheck, Trash2, AlertCircle, Info, CreditCard, Utensils, Package } from "lucide-react";
+import { Bell, CheckCheck, LoaderCircle, Trash2, AlertCircle, Info, CreditCard, Utensils, Package } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -89,8 +89,8 @@ export default function NotificationsPage() {
             disabled={markAllRead.isPending}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition cursor-pointer disabled:opacity-60"
           >
-            <CheckCheck className="w-3.5 h-3.5" />
-            Mark all read
+            {markAllRead.isPending ? <LoaderCircle className="w-3.5 h-3.5 animate-spin" /> : <CheckCheck className="w-3.5 h-3.5" />}
+            {markAllRead.isPending ? "Marking…" : "Mark all read"}
           </button>
         )}
       </div>

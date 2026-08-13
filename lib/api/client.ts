@@ -19,7 +19,8 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
 
-      // ✅ Add mess ID only if it exists and not a public route
+      const messId = localStorage.getItem("currentMessId");
+      if (messId) config.headers["X-Mess-Id"] = messId;
     }
     return config;
   },

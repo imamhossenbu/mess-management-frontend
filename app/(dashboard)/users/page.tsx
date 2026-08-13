@@ -5,11 +5,19 @@ import { useMess } from "@/lib/hooks/useMess";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
 import { useQuery } from "@tanstack/react-query";
-import { usersApi } from "@/lib/api/users";
+import { messApi } from "@/lib/api/mess";
 import { useState } from "react";
 import { UserPlus, Shield, Trash2, ArrowUpRight, Search } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import toast from "react-hot-toast";
+
+type PendingRegistration = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  createdAt: string;
+};
 
 export default function UsersPage() {
   const { currentMess, useGetMembers, addMember, removeMember, updateMemberRole } = useMess();
@@ -38,13 +46,13 @@ export default function UsersPage() {
   const { data: members, isLoading, refetch: refetchMembers } = useGetMembers(currentMess?.id || "");
 
   // Get all registered users to select from for adding
-  const { data: allUsers, isLoading: loadingUsers } = useQuery({
-    queryKey: ["all-users"],
+  const { data: allUsers, isLoading: loadingUsers } = useQuery<PendingRegistration[]>({
+    queryKey: ["pending-registrations"],
     queryFn: async () => {
-      const response = await usersApi.getAll();
+      const response = await messApi.getPendingRegistrations();
       return response.data;
     },
-    enabled: isManager && !!currentMess,
+    enabled: isSuperAdmin && !!currentMess,
   });
 
   const handleAddMember = (e: React.FormEvent) => {
@@ -59,7 +67,7 @@ export default function UsersPage() {
     addMember.mutate(
       {
         messId: currentMess.id,
-        data: { userId: selectedUserId, role: selectedRole },
+        data: { userId: selectedUserId, roles: [selectedRole] },
       },
       {
         onSuccess: () => {
@@ -73,8 +81,8 @@ export default function UsersPage() {
 
   const handleCreateAndAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUserName || !newUserPhone || !newUserPassword) {
-      toast.error("Please fill in Name, Phone, and Password");
+    if (!newUserName || !newUserPhone || !newUserEmail || !newUserPassword) {
+      toast.error("Please fill in name, phone, email, and password");
       return;
     }
     if (newUserPassword.length < 6) {
@@ -85,25 +93,20 @@ export default function UsersPage() {
 
     setCreatingAndAdding(true);
     try {
-      // 1. Create the user manually in the system
-      const response = await usersApi.create({
-        name: newUserName.trim(),
-        phone: newUserPhone.trim(),
-        email: newUserEmail.trim() || undefined,
-        password: newUserPassword,
-        roomNumber: newUserRoom.trim() || undefined,
-        role: "MEMBER", // system role
-      });
-
-      const newUser = response.data;
-
-      // 2. Add the created user to the mess members list
+      // The super admin creates the account directly in this mess. The
+      // backend emails these credentials through Nodemailer.
       await addMember.mutateAsync({
         messId: currentMess.id,
-        data: { userId: newUser.id, role: selectedRole },
+        data: {
+          name: newUserName.trim(),
+          phone: newUserPhone.trim(),
+          email: newUserEmail.trim(),
+          password: newUserPassword,
+          roles: [selectedRole],
+        },
       });
 
-      toast.success("User created and added to mess!");
+      toast.success("Member created. Credentials were sent by email.");
       
       // Reset form states
       setNewUserName("");
@@ -115,7 +118,7 @@ export default function UsersPage() {
       
       refetchMembers();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to create and add member");
+      toast.error(error.response?.data?.message || "Failed to create member");
     } finally {
       setCreatingAndAdding(false);
     }
@@ -124,7 +127,7 @@ export default function UsersPage() {
   const handleRoleChange = (userId: string, role: string) => {
     if (!currentMess) return;
     updateMemberRole.mutate(
-      { messId: currentMess.id, userId, role },
+      { messId: currentMess.id, userId, roles: [role] },
       {
         onSuccess: () => refetchMembers(),
       }
@@ -199,7 +202,7 @@ export default function UsersPage() {
       </div>
 
       {/* Add Member Section - Admins/Managers only */}
-      {isManager && (
+      {isSuperAdmin && (
         <Card className="p-6 border border-slate-100 bg-white">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-100">
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
@@ -213,7 +216,7 @@ export default function UsersPage() {
                   addMode === "existing" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-800"
                 }`}
               >
-                Add Existing User
+                Approve Registration
               </button>
               <button
                 type="button"
@@ -232,7 +235,7 @@ export default function UsersPage() {
             <form onSubmit={handleAddMember} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
-                  Select Registered User
+                  Select Pending Registration
                 </label>
                 <select
                   value={selectedUserId}
@@ -307,13 +310,14 @@ export default function UsersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Email (ঐচ্ছিক)</label>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Email</label>
                   <input
                     type="email"
                     placeholder="e.g. user@email.com"
                     value={newUserEmail}
                     onChange={(e) => setNewUserEmail(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
+                    required
                   />
                 </div>
 
@@ -343,8 +347,8 @@ export default function UsersPage() {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Assign Role</label>
                   <select
-                    value={selectedRole}
-                    onChange={(e) => setSelectedRole(e.target.value)}
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value)}
                     className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
                   >
                     <option value="MEMBER">Member</option>

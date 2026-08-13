@@ -17,7 +17,8 @@ export interface RegisterData {
 }
 
 export interface AuthResponse {
-  accessToken: string;
+  accessToken?: string;
+  message?: string;
   user: {
     id: string;
     name: string;
@@ -36,6 +37,9 @@ export const authApi = {
   login: (data: LoginData) => apiClient.post<AuthResponse>("/auth/login", data),
 
   getProfile: () => apiClient.get("/auth/profile"),
+
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    apiClient.post("/auth/change-password", data),
 
   googleLogin: () => {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;

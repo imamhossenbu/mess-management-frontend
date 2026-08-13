@@ -12,8 +12,8 @@ import { format } from "date-fns";
 import toast from "react-hot-toast";
 
 export default function MarketingsPage() {
-  const { currentMess, useGetMembers } = useMess();
-  const { isManager, user: currentUser } = useAuth();
+  const { currentMess } = useMess();
+  const { isManager } = useAuth();
   
   // Date filter states
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
@@ -24,7 +24,6 @@ export default function MarketingsPage() {
   const [itemName, setItemName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [amount, setAmount] = useState("");
-  const [buyerUserId, setBuyerUserId] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [paymentType, setPaymentType] = useState<"CASH" | "DEBT" | "SELF">("CASH");
   const [shopName, setShopName] = useState("");
@@ -32,9 +31,6 @@ export default function MarketingsPage() {
   const [totalPieces, setTotalPieces] = useState("");
   const [usedPieces, setUsedPieces] = useState("");
   const [note, setNote] = useState("");
-
-  // Fetch members for buyer dropdown selection
-  const { data: members } = useGetMembers(currentMess?.id || "");
 
   // Fetch monthly marketing summary
   const { data: monthlySummary, isLoading, refetch } = useQuery({
@@ -78,7 +74,6 @@ export default function MarketingsPage() {
     setItemName("");
     setQuantity("");
     setAmount("");
-    setBuyerUserId("");
     setPurchaseDate(format(new Date(), "yyyy-MM-dd"));
     setPaymentType("CASH");
     setShopName("");
@@ -90,13 +85,12 @@ export default function MarketingsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!itemName || !amount || !buyerUserId) {
-      toast.error("Please fill in item name, amount, and select a buyer");
+    if (!itemName || !amount) {
+      toast.error("Please fill in item name and amount");
       return;
     }
 
     const payload: any = {
-      userId: buyerUserId,
       date: purchaseDate,
       itemName,
       quantity: quantity || undefined,
@@ -214,20 +208,6 @@ export default function MarketingsPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Buyer (Mess Member)</label>
-                <select
-                  value={buyerUserId}
-                  onChange={(e) => setBuyerUserId(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                  required
-                >
-                  <option value="">-- Choose Buyer --</option>
-                  {members?.map((m) => (
-                    <option key={m.id} value={m.userId}>{m.userName}</option>
-                  ))}
-                </select>
-              </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Purchase Date</label>

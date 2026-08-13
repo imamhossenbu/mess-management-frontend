@@ -40,8 +40,8 @@ export const useMess = () => {
   const useGetMembers = (messId?: string) =>
     useQuery({
       queryKey: ["mess-members", messId],
-      queryFn: async () => (await messApi.getMembers(messId)).data,
-      enabled: !!user,
+      queryFn: async () => (await messApi.getMembers(messId!)).data,
+      enabled: !!user && !!messId,
       staleTime: 2 * 60 * 1000,
       refetchOnWindowFocus: false,
     });
@@ -59,7 +59,7 @@ export const useMess = () => {
   });
 
   const addMember = useMutation({
-    mutationFn: ({ messId, data }: { messId: string; data: { userId: string; role?: string } }) =>
+    mutationFn: ({ messId, data }: { messId: string; data: { name?: string; email?: string; password?: string; phone?: string; userId?: string; roles?: string[]; role?: string } }) =>
       messApi.addMember(messId, data),
     onSuccess: () => {
       toast.success("Member added!");
@@ -79,8 +79,8 @@ export const useMess = () => {
   });
 
   const updateMemberRole = useMutation({
-    mutationFn: ({ messId, userId, role }: { messId: string; userId: string; role: string }) =>
-      messApi.updateMemberRole(messId, userId, role),
+    mutationFn: ({ messId, userId, roles }: { messId: string; userId: string; roles: string[] }) =>
+      messApi.updateMemberRole(messId, userId, roles),
     onSuccess: () => {
       toast.success("Role updated!");
       if (currentMess) queryClient.invalidateQueries({ queryKey: ["mess-members", currentMess.id] });

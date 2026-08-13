@@ -23,7 +23,7 @@ export const usersApi = {
   create: (data: any) => apiClient.post<User>("/users", data),
 
   update: (id: string, data: any) =>
-    apiClient.patch<User>(`/users/${id}`, data),
+    apiClient.patch<User>(`/users/manage/${id}`, data),
 
   delete: (id: string) => apiClient.delete(`/users/${id}`),
 

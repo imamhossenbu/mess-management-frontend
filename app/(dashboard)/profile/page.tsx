@@ -6,6 +6,7 @@ import { useMess } from "@/lib/hooks/useMess";
 import { Card } from "@/components/ui/Card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api/users";
+import { authApi } from "@/lib/api/auth";
 import { paymentsApi } from "@/lib/api/payments";
 import { useState, useRef } from "react";
 import { User, Phone, Home, Mail, Shield, Camera, Save, ArrowDownLeft } from "lucide-react";
@@ -23,6 +24,9 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState(user?.phone || "");
   const [roomNumber, setRoomNumber] = useState(user?.roomNumber || "");
   const [isUploading, setIsUploading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Fetch personal balance details
   const { data: balanceDetails, isLoading: loadingBalance } = useQuery({
@@ -121,6 +125,22 @@ export default function ProfilePage() {
         toast.error("Failed to remove profile photo");
       }
     }
+  };
+
+  const changePasswordMutation = useMutation({
+    mutationFn: () => authApi.changePassword({ currentPassword, newPassword }),
+    onSuccess: () => {
+      toast.success("Password changed successfully!");
+      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "Failed to change password"),
+  });
+
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) return toast.error("New password must be at least 6 characters");
+    if (newPassword !== confirmPassword) return toast.error("New passwords do not match");
+    changePasswordMutation.mutate();
   };
 
   return (
@@ -271,6 +291,17 @@ export default function ProfilePage() {
           </form>
         </Card>
       </div>
+
+      <Card className="p-6 bg-white border border-slate-100">
+        <h2 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <Shield className="w-5 h-5 text-primary-500" /> Change Password
+        </h2>
+        <form onSubmit={handleChangePassword} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+          <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Current password" className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm" required />
+          <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New password" className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm" required />
+          <div className="flex gap-2"><input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="min-w-0 flex-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm" required /><button disabled={changePasswordMutation.isPending} className="px-4 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50">Save</button></div>
+        </form>
+      </Card>
 
       {/* Personal Transactions Ledger */}
       <Card className="p-6 bg-white border border-slate-100">

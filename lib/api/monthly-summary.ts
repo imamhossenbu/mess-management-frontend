@@ -17,6 +17,7 @@ export interface UserMonthlySummary {
 }
 
 export interface MonthlySummaryResponse {
+  isGenerated: boolean;
   month: string;
   year: number;
   totalMeals: number;

@@ -26,7 +26,7 @@ export const useAuth = () => {
     mutationFn: (data: LoginData) => authApi.login(data),
     onSuccess: (response) => {
       const { accessToken, user } = response.data;
-      setAuth(user, accessToken);
+      setAuth(user, accessToken!);
       queryClient.setQueryData(["profile"], user);
       toast.success("Welcome back!");
       setLoading(false);
@@ -44,6 +44,12 @@ export const useAuth = () => {
     mutationFn: (data: RegisterData) => authApi.register(data),
     onSuccess: (response) => {
       const { accessToken, user } = response.data;
+      if (!accessToken) {
+        toast.success(response.data.message || "Registration submitted. Please wait for approval.");
+        setLoading(false);
+        router.push("/login");
+        return;
+      }
       setAuth(user, accessToken);
       queryClient.setQueryData(["profile"], user);
       toast.success("Account created successfully!");

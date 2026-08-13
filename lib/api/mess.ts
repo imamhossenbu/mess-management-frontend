@@ -27,6 +27,7 @@ export interface Member {
   userPhone?: string;
   userProfileImage?: string;
   role: "SUPER_ADMIN" | "ADMIN" | "MEMBER";
+  roles?: Array<"SUPER_ADMIN" | "ADMIN" | "MEMBER">;
   joinedDate: string;
   balance: number;
 }
@@ -74,11 +75,10 @@ export const messApi = {
   deleteMess: (id: string) => apiClient.delete(`/mess/${id}`),
 
   // Get members
-  // Single-mess mode: all accounts are the mess members.
-  getMembers: (_messId?: string) => apiClient.get<Member[]>("/users"),
+  getMembers: (messId: string) => apiClient.get<Member[]>(`/mess/${messId}/members`),
 
   // Add member
-  addMember: (messId: string, data: { userId: string; role?: string }) =>
+  addMember: (messId: string, data: { name?: string; email?: string; password?: string; phone?: string; userId?: string; roles?: string[]; role?: string }) =>
     apiClient.post(`/mess/${messId}/members`, data),
 
   // Remove member
@@ -86,6 +86,8 @@ export const messApi = {
     apiClient.delete(`/mess/${messId}/members/${userId}`),
 
   // Update member role
-  updateMemberRole: (messId: string, userId: string, role: string) =>
-    apiClient.patch(`/mess/${messId}/members/${userId}/role`, { role }),
+  updateMemberRole: (messId: string, userId: string, roles: string[]) =>
+    apiClient.patch(`/mess/${messId}/members/${userId}/role`, { role: roles[0] || "MEMBER", roles }),
+
+  getPendingRegistrations: () => apiClient.get("/mess/registrations/pending"),
 };
