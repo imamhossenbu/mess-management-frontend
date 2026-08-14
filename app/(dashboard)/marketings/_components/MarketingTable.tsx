@@ -3,14 +3,16 @@
 "use client";
 
 import { Card } from "@/components/ui/Card";
-import { Trash2, ShoppingBag, Edit2 } from "lucide-react";
+import { Trash2, ShoppingBag, Edit2, Eye, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
+import Image from "next/image";
 
 interface MarketingTableProps {
   data: any;
   canEdit: boolean;
   onDelete: (id: string) => void;
-  onEdit?: (item: any) => void;
+  onView: (item: any) => void;
+  onEdit: (item: any) => void;
   isDeleting: boolean;
 }
 
@@ -18,14 +20,11 @@ export function MarketingTable({
   data,
   canEdit,
   onDelete,
+  onView,
   onEdit,
   isDeleting,
 }: MarketingTableProps) {
-  // ✅ Check if data has marketings array
   const marketings = data?.marketings || [];
-
-  console.log("📊 MarketingTable data:", data);
-  console.log("📊 Marketings array:", marketings);
 
   const getPaymentTypeColor = (type: string) => {
     switch (type) {
@@ -45,9 +44,7 @@ export function MarketingTable({
       <Card className="p-12 bg-white border border-slate-100">
         <div className="text-center">
           <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-400 font-medium">
-            No bazar purchases logged
-          </p>
+          <p className="text-slate-400 font-medium">No bazar purchases logged</p>
           <p className="text-sm text-slate-300 mt-1">
             Start logging your bazar expenses
           </p>
@@ -74,10 +71,11 @@ export function MarketingTable({
             <tr className="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
               <th className="pb-3 pl-2">Date</th>
               <th className="pb-3">Items</th>
+              <th className="pb-3">Image</th>
               <th className="pb-3">Added By</th>
               <th className="pb-3">Payment</th>
               <th className="pb-3 text-right">Amount</th>
-              {canEdit && <th className="pb-3 text-right pr-2">Actions</th>}
+              <th className="pb-3 text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
@@ -90,17 +88,31 @@ export function MarketingTable({
                   <p className="font-semibold text-slate-800 text-sm">
                     {item.items?.length > 1
                       ? `${item.items.length} items`
-                      : item.items?.[0]?.itemName || "N/A"}
+                      : item.items?.[0]?.itemName || "N/A"
+                    }
                   </p>
                   {item.shopName && (
-                    <p className="text-[10px] text-slate-400">
-                      Shop: {item.shopName}
-                    </p>
+                    <p className="text-[10px] text-slate-400">Shop: {item.shopName}</p>
                   )}
                   {item.note && (
-                    <p className="text-[10px] text-slate-400 italic">
-                      {item.note}
-                    </p>
+                    <p className="text-[10px] text-slate-400 italic">{item.note}</p>
+                  )}
+                </td>
+                <td className="py-3">
+                  {item.imageUrl ? (
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:scale-110 transition">
+                      <Image
+                        src={item.imageUrl}
+                        alt="Bazar"
+                        fill
+                        className="object-cover"
+                        onClick={() => window.open(item.imageUrl, '_blank')}
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
+                      <ImageIcon className="w-5 h-5 text-slate-300" />
+                    </div>
                   )}
                 </td>
                 <td className="py-3">
@@ -114,36 +126,45 @@ export function MarketingTable({
                   </div>
                 </td>
                 <td className="py-3">
-                  <span
-                    className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getPaymentTypeColor(item.paymentType)}`}
-                  >
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getPaymentTypeColor(item.paymentType)}`}>
                     {item.paymentType}
                   </span>
                 </td>
                 <td className="py-3 text-right font-bold text-slate-800 text-sm">
                   ৳ {Number(item.totalAmount).toLocaleString()}
                 </td>
-                {canEdit && (
-                  <td className="py-3 text-right pr-2">
-                    <div className="flex items-center justify-end gap-1">
+                <td className="py-3 text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <button
+                      onClick={() => onView(item)}
+                      className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition"
+                      title="View Details"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+
+                    {canEdit && (
                       <button
-                        onClick={() => onEdit?.(item)}
-                        className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition"
+                        onClick={() => onEdit(item)}
+                        className="p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition"
                         title="Edit"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
+                    )}
+
+                    {canEdit && (
                       <button
                         onClick={() => onDelete(item.id)}
                         disabled={isDeleting}
-                        className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition disabled:opacity-50"
+                        className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition disabled:opacity-50"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
-                    </div>
-                  </td>
-                )}
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

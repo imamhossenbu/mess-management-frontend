@@ -47,7 +47,6 @@ export function useMonthlyMarketing(year?: number, month?: number) {
     queryKey: ["marketings", "monthly", year, month],
     queryFn: async () => {
       const response = await marketingsApi.getMonthlySummary(year, month);
-      console.log("📦 Monthly marketing response:", response.data);
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -58,36 +57,47 @@ export function useCreateMarketing() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateMarketingData) => marketingsApi.create(data),
+    mutationFn: (data: CreateMarketingData) => {
+      console.log("📦 [HOOK] Create data:", data);
+      return marketingsApi.create(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["marketings"] });
+      queryClient.invalidateQueries({ queryKey: ["marketings", "monthly"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      // ✅ Only show toast here, not in component
       toast.success("Bazar entry created successfully!");
     },
     onError: (error: any) => {
+      console.error("❌ [HOOK] Create error:", error);
       const message =
         error.response?.data?.message || "Failed to create bazar entry";
       toast.error(message);
-      console.error("❌ Create marketing error:", error);
     },
   });
 }
+
 export function useUpdateMarketing() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateMarketingData }) =>
-      marketingsApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateMarketingData }) => {
+      console.log("📦 [HOOK] Update data:", { id, data });
+      return marketingsApi.update(id, data);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["marketings"] });
       queryClient.invalidateQueries({ queryKey: ["marketing", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["marketings", "monthly"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Bazar entry updated successfully!");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Failed to update bazar entry",
-      );
+      console.error("❌ [HOOK] Update error:", error);
+      console.error("❌ [HOOK] Error response:", error.response);
+      console.error("❌ [HOOK] Error data:", error.response?.data);
+      const message =
+        error.response?.data?.message || "Failed to update bazar entry";
+      toast.error(message);
     },
   });
 }
@@ -96,16 +106,21 @@ export function useDeleteMarketing() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => marketingsApi.delete(id),
+    mutationFn: (id: string) => {
+      console.log("📦 [HOOK] Delete id:", id);
+      return marketingsApi.delete(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["marketings"] });
+      queryClient.invalidateQueries({ queryKey: ["marketings", "monthly"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Bazar entry deleted successfully!");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || "Failed to delete bazar entry",
-      );
+      console.error("❌ [HOOK] Delete error:", error);
+      const message =
+        error.response?.data?.message || "Failed to delete bazar entry";
+      toast.error(message);
     },
   });
 }

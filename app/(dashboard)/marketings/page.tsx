@@ -1,40 +1,36 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/(dashboard)/marketings/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
-import {
-  useMonthlyMarketing,
-  useDeleteMarketing,
-} from "@/lib/hooks/useMarketings";
+import { useMonthlyMarketing, useDeleteMarketing } from "@/lib/hooks/useMarketings";
 import { MarketingsHeader } from "./_components/MarketingsHeader";
 import { MarketingForm } from "./_components/MarketingForm";
 import { MarketingSummaryCards } from "./_components/MarketingSummaryCards";
 import { MarketingTable } from "./_components/MarketingTable";
+import { MarketingViewModal } from "./_components/MarketingViewModal";
+import { MarketingEditModal } from "./_components/MarketingEditModal";
 import { MarketingsSkeleton } from "./_components/MarketingsSkeleton";
 
 export default function MarketingsPage() {
   const { user } = useAuth();
-  const [selectedYear, setSelectedYear] = useState<number>(
-    new Date().getFullYear(),
-  );
-  const [selectedMonth, setSelectedMonth] = useState<number>(
-    new Date().getMonth() + 1,
-  );
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
-  const isAdmin = user?.role === "ADMIN";
-  const isManager = user?.role === "MANAGER" || user?.role === "ADMIN";
-  const canEdit = isManager;
+  // ✅ সবাই বাজার করতে পারে - permission check সরানো হয়েছে
+  const canEdit = true; // সবাই edit করতে পারে
 
-  // Get monthly marketing data
   const {
     data: monthlyData,
     isLoading,
-    refetch,
+    refetch
   } = useMonthlyMarketing(selectedYear, selectedMonth);
 
-  // Delete mutation
   const deleteMarketing = useDeleteMarketing();
 
   const handleDelete = (id: string) => {
@@ -42,9 +38,19 @@ export default function MarketingsPage() {
       deleteMarketing.mutate(id, {
         onSuccess: () => {
           refetch();
-        },
+        }
       });
     }
+  };
+
+  const handleView = (item: any) => {
+    setSelectedItem(item);
+    setViewModalOpen(true);
+  };
+
+  const handleEdit = (item: any) => {
+    setSelectedItem(item);
+    setEditModalOpen(true);
   };
 
   const handleFormSuccess = () => {
@@ -52,13 +58,14 @@ export default function MarketingsPage() {
     setShowAddForm(false);
   };
 
+  const handleEditSuccess = () => {
+    refetch();
+    setEditModalOpen(false);
+  };
+
   if (isLoading) {
     return <MarketingsSkeleton />;
   }
-
-  // ✅ Log data for debugging
-  console.log("📊 Monthly Data:", monthlyData);
-  console.log("📊 Marketings:", monthlyData?.marketings);
 
   return (
     <div className="space-y-6">
@@ -86,7 +93,24 @@ export default function MarketingsPage() {
         data={monthlyData}
         canEdit={canEdit}
         onDelete={handleDelete}
+        onView={handleView}
+        onEdit={handleEdit}
         isDeleting={deleteMarketing.isPending}
+      />
+
+      {/* View Modal */}
+      <MarketingViewModal
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        data={selectedItem}
+      />
+
+      {/* Edit Modal */}
+      <MarketingEditModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        data={selectedItem}
+        onSuccess={handleEditSuccess}
       />
     </div>
   );

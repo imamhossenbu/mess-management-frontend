@@ -43,15 +43,14 @@ export function MarketingsHeader({
           setSelectedMonth={setSelectedMonth}
         />
 
-        {canEdit && (
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-semibold shadow-sm hover:shadow transition cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            {showAddForm ? "Cancel" : "Log Bazar"}
-          </button>
-        )}
+        {/* ✅ সবাই বাজার যোগ করতে পারে */}
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-semibold shadow-sm hover:shadow transition cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          {showAddForm ? "Cancel" : "Log Bazar"}
+        </button>
       </div>
     </div>
   );

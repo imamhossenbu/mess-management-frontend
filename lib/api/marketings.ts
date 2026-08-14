@@ -9,7 +9,6 @@ export interface MarketingItem {
   price: number;
   totalPrice: number;
   note?: string;
-  addedToInventory: boolean;
 }
 
 export interface Marketing {
@@ -21,6 +20,7 @@ export interface Marketing {
   totalAmount: number;
   paymentType: string;
   note?: string;
+  imageUrl?: string;
   items: MarketingItem[];
   createdAt: string;
   updatedAt: string;
@@ -33,22 +33,23 @@ export interface CreateMarketingItem {
   price: number;
   totalPrice: number;
   note?: string;
-  addToInventory?: boolean;
 }
 
 export interface CreateMarketingData {
   date?: string;
   shopName?: string;
   paymentType?: string;
-  userId?: string; // ✅ Made optional - backend will get from auth
   items: CreateMarketingItem[];
   note?: string;
+  image?: File;
 }
 
 export interface UpdateMarketingData {
   shopName?: string;
   paymentType?: string;
   note?: string;
+  items?: CreateMarketingItem[];
+  image?: File;
 }
 
 export const marketingsApi = {
@@ -56,11 +57,82 @@ export const marketingsApi = {
 
   getOne: (id: string) => apiClient.get<Marketing>(`/marketings/${id}`),
 
-  create: (data: CreateMarketingData) =>
-    apiClient.post<Marketing>("/marketings", data),
+  create: (data: CreateMarketingData) => {
+    const formData = new FormData();
 
-  update: (id: string, data: UpdateMarketingData) =>
-    apiClient.patch<Marketing>(`/marketings/${id}`, data),
+    if (data.date) formData.append("date", data.date);
+    if (data.shopName) formData.append("shopName", data.shopName);
+    if (data.paymentType) formData.append("paymentType", data.paymentType);
+    if (data.note) formData.append("note", data.note);
+
+    const items = Array.isArray(data.items) ? data.items : [];
+    const sanitizedItems = items.map((item) => ({
+      itemName: item.itemName || "",
+      quantity: item.quantity || 1,
+      unit: item.unit || "PIECE",
+      price: item.price || 0,
+      totalPrice: item.totalPrice || (item.price || 0) * (item.quantity || 1),
+      note: item.note || undefined,
+    }));
+    const itemsJson = JSON.stringify(sanitizedItems);
+    console.log("📤 [API] Create items JSON:", itemsJson);
+    formData.append("items", itemsJson);
+
+    if (data.image) {
+      console.log("📤 [API] Create image:", data.image.name, data.image.size);
+      formData.append("image", data.image);
+    }
+
+    console.log("📤 [API] Create FormData entries:");
+    for (const pair of formData.entries()) {
+      console.log(pair[0], typeof pair[1] === "string" ? pair[1] : "[File]");
+    }
+
+    return apiClient.post<Marketing>("/marketings", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+
+  update: (id: string, data: UpdateMarketingData) => {
+    const formData = new FormData();
+
+    if (data.shopName) formData.append("shopName", data.shopName);
+    if (data.paymentType) formData.append("paymentType", data.paymentType);
+    if (data.note) formData.append("note", data.note);
+
+    if (data.items) {
+      const items = Array.isArray(data.items) ? data.items : [];
+      const sanitizedItems = items.map((item) => ({
+        itemName: item.itemName || "",
+        quantity: item.quantity || 1,
+        unit: item.unit || "PIECE",
+        price: item.price || 0,
+        totalPrice: item.totalPrice || (item.price || 0) * (item.quantity || 1),
+        note: item.note || undefined,
+      }));
+      const itemsJson = JSON.stringify(sanitizedItems);
+      console.log("📤 [API] Update items JSON:", itemsJson);
+      formData.append("items", itemsJson);
+    }
+
+    if (data.image) {
+      console.log("📤 [API] Update image:", data.image.name, data.image.size);
+      formData.append("image", data.image);
+    }
+
+    console.log("📤 [API] Update FormData entries:");
+    for (const pair of formData.entries()) {
+      console.log(pair[0], typeof pair[1] === "string" ? pair[1] : "[File]");
+    }
+
+    return apiClient.patch<Marketing>(`/marketings/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 
   delete: (id: string) => apiClient.delete(`/marketings/${id}`),
 
