@@ -6,7 +6,6 @@ import {
   CreateMarketingData,
   UpdateMarketingData,
 } from "@/lib/api/marketings";
-import toast from "react-hot-toast";
 
 export function useMarketings() {
   return useQuery({
@@ -53,35 +52,33 @@ export function useMonthlyMarketing(year?: number, month?: number) {
   });
 }
 
+// ✅ No toast here — MarketingForm shows toast.success/toast.error
+// via the mutate() call options, so the hook only invalidates queries.
 export function useCreateMarketing() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreateMarketingData) => {
-      console.log("📦 [HOOK] Create data:", data);
       return marketingsApi.create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["marketings"] });
       queryClient.invalidateQueries({ queryKey: ["marketings", "monthly"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      toast.success("Bazar entry created successfully!");
     },
     onError: (error: any) => {
       console.error("❌ [HOOK] Create error:", error);
-      const message =
-        error.response?.data?.message || "Failed to create bazar entry";
-      toast.error(message);
     },
   });
 }
 
+// ✅ No toast here — MarketingEditModal shows toast.success/toast.error
+// via the mutate() call options, so the hook only invalidates queries.
 export function useUpdateMarketing() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateMarketingData }) => {
-      console.log("📦 [HOOK] Update data:", { id, data });
       return marketingsApi.update(id, data);
     },
     onSuccess: (_, variables) => {
@@ -89,38 +86,30 @@ export function useUpdateMarketing() {
       queryClient.invalidateQueries({ queryKey: ["marketing", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["marketings", "monthly"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      toast.success("Bazar entry updated successfully!");
     },
     onError: (error: any) => {
       console.error("❌ [HOOK] Update error:", error);
-      console.error("❌ [HOOK] Error response:", error.response);
-      console.error("❌ [HOOK] Error data:", error.response?.data);
-      const message =
-        error.response?.data?.message || "Failed to update bazar entry";
-      toast.error(message);
     },
   });
 }
 
+// ✅ No toast here — MarketingTable wraps the delete call with
+// toast.promise() to show loading/success/error, so the hook only
+// invalidates queries.
 export function useDeleteMarketing() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => {
-      console.log("📦 [HOOK] Delete id:", id);
       return marketingsApi.delete(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["marketings"] });
       queryClient.invalidateQueries({ queryKey: ["marketings", "monthly"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      toast.success("Bazar entry deleted successfully!");
     },
     onError: (error: any) => {
       console.error("❌ [HOOK] Delete error:", error);
-      const message =
-        error.response?.data?.message || "Failed to delete bazar entry";
-      toast.error(message);
     },
   });
 }

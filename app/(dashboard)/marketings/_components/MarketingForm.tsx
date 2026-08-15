@@ -17,6 +17,7 @@ const UNITS = ["KG", "GRAM", "LITER", "ML", "PIECE", "DOZEN", "PACKET", "BOTTLE"
 interface MarketingFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  canEdit?: boolean;
 }
 
 interface FormItem {

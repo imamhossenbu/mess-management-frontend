@@ -50,6 +50,7 @@ export interface UpdateMarketingData {
   note?: string;
   items?: CreateMarketingItem[];
   image?: File;
+  removeImage?: boolean;
 }
 
 export const marketingsApi = {
@@ -75,17 +76,10 @@ export const marketingsApi = {
       note: item.note || undefined,
     }));
     const itemsJson = JSON.stringify(sanitizedItems);
-    console.log("📤 [API] Create items JSON:", itemsJson);
     formData.append("items", itemsJson);
 
     if (data.image) {
-      console.log("📤 [API] Create image:", data.image.name, data.image.size);
       formData.append("image", data.image);
-    }
-
-    console.log("📤 [API] Create FormData entries:");
-    for (const pair of formData.entries()) {
-      console.log(pair[0], typeof pair[1] === "string" ? pair[1] : "[File]");
     }
 
     return apiClient.post<Marketing>("/marketings", formData, {
@@ -113,18 +107,13 @@ export const marketingsApi = {
         note: item.note || undefined,
       }));
       const itemsJson = JSON.stringify(sanitizedItems);
-      console.log("📤 [API] Update items JSON:", itemsJson);
       formData.append("items", itemsJson);
     }
 
     if (data.image) {
-      console.log("📤 [API] Update image:", data.image.name, data.image.size);
       formData.append("image", data.image);
-    }
-
-    console.log("📤 [API] Update FormData entries:");
-    for (const pair of formData.entries()) {
-      console.log(pair[0], typeof pair[1] === "string" ? pair[1] : "[File]");
+    } else if (data.removeImage) {
+      formData.append("removeImage", "true");
     }
 
     return apiClient.patch<Marketing>(`/marketings/${id}`, formData, {

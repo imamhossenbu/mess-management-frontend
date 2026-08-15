@@ -4,7 +4,10 @@
 
 import { useState } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { useMonthlyMarketing, useDeleteMarketing } from "@/lib/hooks/useMarketings";
+import {
+  useMonthlyMarketing,
+  useDeleteMarketing,
+} from "@/lib/hooks/useMarketings";
 import { MarketingsHeader } from "./_components/MarketingsHeader";
 import { MarketingForm } from "./_components/MarketingForm";
 import { MarketingSummaryCards } from "./_components/MarketingSummaryCards";
@@ -15,32 +18,42 @@ import { MarketingsSkeleton } from "./_components/MarketingsSkeleton";
 
 export default function MarketingsPage() {
   const { user } = useAuth();
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear(),
+  );
+  const [selectedMonth, setSelectedMonth] = useState<number>(
+    new Date().getMonth() + 1,
+  );
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  // ✅ সবাই বাজার করতে পারে - permission check সরানো হয়েছে
-  const canEdit = true; // সবাই edit করতে পারে
+  const canEdit = true;
 
   const {
     data: monthlyData,
     isLoading,
-    refetch
+    refetch,
   } = useMonthlyMarketing(selectedYear, selectedMonth);
 
   const deleteMarketing = useDeleteMarketing();
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this bazar entry?")) {
+  // ✅ No native confirm() here — MarketingTable's DeleteConfirmModal
+  // handles confirmation. This returns a Promise so MarketingTable
+  // can wrap it with toast.promise() for loading/success/error toasts.
+  const handleDelete = (id: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
       deleteMarketing.mutate(id, {
-        onSuccess: () => {
+        onSuccess: (data) => {
           refetch();
-        }
+          resolve(data);
+        },
+        onError: (err) => {
+          reject(err);
+        },
       });
-    }
+    });
   };
 
   const handleView = (item: any) => {
