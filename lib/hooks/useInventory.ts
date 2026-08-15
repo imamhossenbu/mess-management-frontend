@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // lib/hooks/useInventory.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   inventoryApi,
@@ -79,7 +79,14 @@ export function useAddInventory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: AddInventoryData) => inventoryApi.add(data),
+    mutationFn: (data: AddInventoryData) => {
+      // ✅ Ensure unit is provided
+      const payload = {
+        ...data,
+        unit: data.unit || "KG",
+      };
+      return inventoryApi.add(payload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       queryClient.invalidateQueries({ queryKey: ["inventory", "summary"] });

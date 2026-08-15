@@ -9,9 +9,9 @@ export interface InventoryItem {
   quantity: number;
   minStockLevel: number;
   purchasePrice?: number;
-  sellingPrice?: number;
   lastUpdated: string;
   status: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,26 +24,32 @@ export interface InventoryLog {
   newQuantity: number;
   reason: string;
   note?: string;
+  marketingId?: string;
   date: string;
   createdAt: string;
+  inventoryItem?: {
+    id: string;
+    name: string;
+    category: string;
+    unit: string;
+  };
 }
 
 export interface CreateInventoryItemData {
   name: string;
   category: string;
   unit: string;
-  quantity: number;
+  initialQuantity: number;
   minStockLevel: number;
   purchasePrice?: number;
-  sellingPrice?: number;
 }
 
 export interface AddInventoryData {
   itemName: string;
   quantity: number;
-  unit: string;
-  marketingItemId?: string;
+  unit?: string;
   note?: string;
+  marketingId?: string;
 }
 
 export interface RemoveInventoryData {
@@ -59,39 +65,29 @@ export interface SetInventoryData {
 }
 
 export const inventoryApi = {
-  // Get all inventory items
   getAll: () => apiClient.get<Record<string, InventoryItem[]>>("/inventory"),
 
-  // Get inventory summary
   getSummary: () => apiClient.get("/inventory/summary"),
 
-  // Get by category
   getByCategory: (category: string) =>
     apiClient.get<InventoryItem[]>(`/inventory/category/${category}`),
 
-  // Get single item
   getItem: (name: string) =>
     apiClient.get<InventoryItem>(`/inventory/item/${name}`),
 
-  // Create inventory item
   createItem: (data: CreateInventoryItemData) =>
     apiClient.post<InventoryItem>("/inventory/items", data),
 
-  // Update inventory item
   updateItem: (name: string, data: Partial<CreateInventoryItemData>) =>
     apiClient.patch<InventoryItem>(`/inventory/items/${name}`, data),
 
-  // Add inventory
   add: (data: AddInventoryData) => apiClient.post("/inventory/add", data),
 
-  // Remove inventory
   remove: (data: RemoveInventoryData) =>
     apiClient.post("/inventory/remove", data),
 
-  // Set inventory (manual)
   set: (data: SetInventoryData) => apiClient.post("/inventory/set", data),
 
-  // Get stock logs
   getLogs: (itemName?: string) => {
     const url = itemName
       ? `/inventory/logs?itemName=${itemName}`
@@ -99,7 +95,6 @@ export const inventoryApi = {
     return apiClient.get<InventoryLog[]>(url);
   },
 
-  // Check availability
   checkAvailability: (itemName: string, quantity: number) =>
     apiClient.get(`/inventory/check/${itemName}?quantity=${quantity}`),
 };
