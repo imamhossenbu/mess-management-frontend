@@ -73,6 +73,7 @@ export function useCreateUtilityBill() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["utility-bills"] });
       queryClient.invalidateQueries({ queryKey: ["utility-bills", "summary"] });
+      queryClient.invalidateQueries({ queryKey: ["utility-bills", "monthly"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Utility bill created successfully!");
     },
@@ -90,12 +91,10 @@ export function useUpdateUtilityBill() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateUtilityBillData }) =>
       utilityBillsApi.update(id, data),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["utility-bills"] });
-      queryClient.invalidateQueries({
-        queryKey: ["utility-bill", variables.id],
-      });
       queryClient.invalidateQueries({ queryKey: ["utility-bills", "summary"] });
+      queryClient.invalidateQueries({ queryKey: ["utility-bills", "monthly"] });
       toast.success("Utility bill updated successfully!");
     },
     onError: (error: any) => {
@@ -114,6 +113,7 @@ export function useDeleteUtilityBill() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["utility-bills"] });
       queryClient.invalidateQueries({ queryKey: ["utility-bills", "summary"] });
+      queryClient.invalidateQueries({ queryKey: ["utility-bills", "monthly"] });
       toast.success("Utility bill deleted successfully!");
     },
     onError: (error: any) => {
@@ -133,6 +133,7 @@ export function useDeleteUtilityBillsByMonth() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["utility-bills"] });
       queryClient.invalidateQueries({ queryKey: ["utility-bills", "summary"] });
+      queryClient.invalidateQueries({ queryKey: ["utility-bills", "monthly"] });
       toast.success("Utility bills deleted successfully!");
     },
     onError: (error: any) => {

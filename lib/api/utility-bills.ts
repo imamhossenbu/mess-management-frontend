@@ -1,9 +1,11 @@
 // lib/api/utility-bills.ts
 import { apiClient } from "./client";
 
+export type BillType = "CURRENT" | "WIFI" | "RENT" | "WATER" | "KHALA";
+
 export interface UtilityBill {
   id: string;
-  billType: string;
+  billType: BillType;
   monthYear: string;
   amount: number;
   paidBy?: string;
@@ -14,7 +16,7 @@ export interface UtilityBill {
 }
 
 export interface CreateUtilityBillData {
-  billType: string;
+  billType: BillType;
   monthYear: string;
   amount: number;
   paidBy?: string;
@@ -22,46 +24,46 @@ export interface CreateUtilityBillData {
 }
 
 export interface UpdateUtilityBillData {
-  billType?: string;
+  billType?: BillType;
   amount?: number;
   paidBy?: string;
   note?: string;
+  monthYear?: string;
+}
+
+export interface MonthlyUtilitySummary {
+  month: string;
+  year: number;
+  totalCurrent: number;
+  totalWifi: number;
+  totalRent: number;
+  totalWater: number;
+  totalKhala: number;
+  totalAmount: number;
+  perPersonShare: number;
+  totalMembers: number;
+  bills: UtilityBill[];
 }
 
 export const utilityBillsApi = {
-  // Get all utility bills
   getAll: () => apiClient.get<UtilityBill[]>("/utility-bills"),
-
-  // Get single bill
   getOne: (id: string) => apiClient.get<UtilityBill>(`/utility-bills/${id}`),
-
-  // Create bill
   create: (data: CreateUtilityBillData) =>
     apiClient.post<UtilityBill>("/utility-bills", data),
-
-  // Update bill
   update: (id: string, data: UpdateUtilityBillData) =>
     apiClient.patch<UtilityBill>(`/utility-bills/${id}`, data),
-
-  // Delete bill
   delete: (id: string) => apiClient.delete(`/utility-bills/${id}`),
-
-  // Get by month
   getByMonth: (year: number, month: number) =>
     apiClient.get<UtilityBill[]>(`/utility-bills/month/${year}/${month}`),
-
-  // Get monthly summary
   getMonthlySummary: (year?: number, month?: number) => {
     const params = new URLSearchParams();
     if (year) params.append("year", year.toString());
     if (month) params.append("month", month.toString());
-    return apiClient.get(`/utility-bills/monthly?${params.toString()}`);
+    return apiClient.get<MonthlyUtilitySummary>(
+      `/utility-bills/monthly?${params.toString()}`,
+    );
   },
-
-  // Get summary
   getSummary: () => apiClient.get("/utility-bills/summary"),
-
-  // Delete by month
   deleteByMonth: (year: number, month: number) =>
     apiClient.delete(`/utility-bills/month/${year}/${month}`),
 };
