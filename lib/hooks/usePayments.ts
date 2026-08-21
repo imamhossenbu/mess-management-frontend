@@ -8,29 +8,32 @@ import {
 } from "@/lib/api/payments";
 import toast from "react-hot-toast";
 
+// Get all payments
 export function usePayments() {
   return useQuery({
     queryKey: ["payments"],
     queryFn: async () => {
-      const response = await paymentsApi.getAll();
-      return response.data;
+      const res = await paymentsApi.getAll();
+      return res.data;
     },
     staleTime: 2 * 60 * 1000,
   });
 }
 
+// Get single payment
 export function usePayment(id: string) {
   return useQuery({
     queryKey: ["payment", id],
     queryFn: async () => {
-      const response = await paymentsApi.getOne(id);
-      return response.data;
+      const res = await paymentsApi.getOne(id);
+      return res.data;
     },
     enabled: !!id,
     staleTime: 2 * 60 * 1000,
   });
 }
 
+// Get user payments
 export function useUserPayments(
   userId: string,
   startDate?: string,
@@ -39,48 +42,52 @@ export function useUserPayments(
   return useQuery({
     queryKey: ["payments", "user", userId, startDate, endDate],
     queryFn: async () => {
-      const response = await paymentsApi.getByUser(userId, startDate, endDate);
-      return response.data;
+      const res = await paymentsApi.getByUser(userId, startDate, endDate);
+      return res.data;
     },
     enabled: !!userId,
     staleTime: 2 * 60 * 1000,
   });
 }
 
+// Get user balance
 export function useUserBalance(userId: string) {
   return useQuery({
     queryKey: ["payments", "balance", userId],
     queryFn: async () => {
-      const response = await paymentsApi.getUserBalance(userId);
-      return response.data;
+      const res = await paymentsApi.getUserBalance(userId);
+      return res.data;
     },
     enabled: !!userId,
     staleTime: 2 * 60 * 1000,
   });
 }
 
+// Get all user balances
 export function useAllUserBalances() {
   return useQuery({
     queryKey: ["payments", "all-balances"],
     queryFn: async () => {
-      const response = await paymentsApi.getAllBalances();
-      return response.data;
+      const res = await paymentsApi.getAllBalances();
+      return res.data;
     },
     staleTime: 2 * 60 * 1000,
   });
 }
 
+// Get monthly payments
 export function useMonthlyPayments(year?: number, month?: number) {
   return useQuery({
     queryKey: ["payments", "monthly", year, month],
     queryFn: async () => {
-      const response = await paymentsApi.getMonthlySummary(year, month);
-      return response.data;
+      const res = await paymentsApi.getMonthlySummary(year, month);
+      return res.data;
     },
     staleTime: 5 * 60 * 1000,
   });
 }
 
+// Create payment
 export function useCreatePayment() {
   const queryClient = useQueryClient();
 
@@ -98,6 +105,7 @@ export function useCreatePayment() {
   });
 }
 
+// Update payment
 export function useUpdatePayment() {
   const queryClient = useQueryClient();
 
@@ -116,6 +124,7 @@ export function useUpdatePayment() {
   });
 }
 
+// Delete payment
 export function useDeletePayment() {
   const queryClient = useQueryClient();
 
