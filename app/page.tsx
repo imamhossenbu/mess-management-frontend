@@ -32,7 +32,7 @@ export default function HomePage() {
           </div>
         </div>
         <p className="text-sm text-slate-500 font-medium animate-pulse">
-          Loading...
+         <Loader2 className="w-4 h-4 mr-2 inline-block animate-spin" />
         </p>
       </div>
     </div>
