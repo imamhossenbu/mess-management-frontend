@@ -2,7 +2,7 @@
 // app/(dashboard)/payments/_components/MemberPaymentView.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
 import {
   Wallet,
@@ -78,6 +78,46 @@ export function MemberPaymentView({
   });
 
   const hasSummary = !!monthlySummaryData;
+
+  // Query ALL compiled user summary sheets for past dues calculation
+  const { data: allSummaries, isLoading: loadingAllSummaries } = useQuery({
+    queryKey: ["all-user-summaries", user.id],
+    queryFn: async () => {
+      try {
+        const res = await monthlySummaryApi.getUserSummaries(user.id);
+        return res.data;
+      } catch (err) {
+        return [];
+      }
+    },
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Calculate past dues breakdown using FIFO
+  const pastDuesBreakdown = useMemo(() => {
+    if (!allSummaries || !myBalance || Number(myBalance.balance) >= 0) return [];
+    
+    // Live balance is negative for dues. So we need Math.abs() to get the amount owed.
+    let remainingDue = Math.abs(Number(myBalance.balance));
+    const breakdown = [];
+    
+    // allSummaries is already sorted descending by monthYear from backend
+    for (const s of allSummaries) {
+      if (remainingDue <= 0) break;
+      const bill = Number(s.totalBill);
+      if (bill > 0) {
+        const allocate = Math.min(remainingDue, bill);
+        breakdown.push({
+          id: s.monthYear || s.month,
+          month: format(new Date(s.monthYear || `${s.year}-${s.month}-01`), "MMMM yyyy"),
+          due: allocate
+        });
+        remainingDue -= allocate;
+      }
+    }
+    return breakdown;
+  }, [allSummaries, myBalance]);
 
   // 1. Balance Calculation
   // Compiled sheet uses: positive = due, negative = advance
@@ -237,6 +277,21 @@ export function MemberPaymentView({
                       <span>৳{Math.abs(Number(monthlySummaryData.currentDue)).toLocaleString()}</span>
                     </div>
                   </div>
+                </div>
+              )}
+              
+              {/* Past Dues Breakdown */}
+              {pastDuesBreakdown.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-rose-100/50 space-y-1.5">
+                  <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <TrendingDown className="w-3 h-3" /> Past Dues Breakdown
+                  </p>
+                  {pastDuesBreakdown.map((due: any) => (
+                    <div key={due.id} className="flex justify-between items-center text-xs font-medium text-rose-700 bg-rose-50/50 px-2 py-1 rounded">
+                      <span>{due.month}</span>
+                      <span className="font-bold">৳{due.due.toLocaleString()}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
