@@ -98,26 +98,33 @@ export function MemberPaymentView({
   const pastDuesBreakdown = useMemo(() => {
     if (!allSummaries || !myBalance || Number(myBalance.balance) >= 0) return [];
     
-    // Live balance is negative for dues. So we need Math.abs() to get the amount owed.
     let remainingDue = Math.abs(Number(myBalance.balance));
-    const breakdown = [];
+    const fullBreakdown: any[] = [];
     
-    // allSummaries is already sorted descending by monthYear from backend
+    // allSummaries is sorted descending
     for (const s of allSummaries) {
       if (remainingDue <= 0) break;
       const bill = Number(s.totalBill);
       if (bill > 0) {
         const allocate = Math.min(remainingDue, bill);
-        breakdown.push({
+        fullBreakdown.push({
           id: s.monthYear || s.month,
+          year: s.year || new Date(s.monthYear).getFullYear(),
+          monthNum: s.month || new Date(s.monthYear).getMonth() + 1,
           month: format(new Date(s.monthYear || `${s.year}-${s.month}-01`), "MMMM yyyy"),
           due: allocate
         });
         remainingDue -= allocate;
       }
     }
-    return breakdown;
-  }, [allSummaries, myBalance]);
+    
+    // Filter out the selected month (and any future months) so it only shows "Past" dues relative to the viewed month
+    return fullBreakdown.filter(d => {
+      if (d.year < selectedYear) return true;
+      if (d.year === selectedYear && d.monthNum < selectedMonth) return true;
+      return false;
+    });
+  }, [allSummaries, myBalance, selectedYear, selectedMonth]);
 
   // 1. Balance Calculation
   // Compiled sheet uses: positive = due, negative = advance
@@ -281,19 +288,24 @@ export function MemberPaymentView({
               )}
               
               {/* Past Dues Breakdown */}
-              {pastDuesBreakdown.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-rose-100/50 space-y-1.5">
-                  <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider mb-2 flex items-center gap-1">
-                    <TrendingDown className="w-3 h-3" /> Past Dues Breakdown
-                  </p>
-                  {pastDuesBreakdown.map((due: any) => (
+              <div className="mt-3 pt-3 border-t border-slate-200/60 space-y-1.5">
+                <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1 ${pastDuesBreakdown.length > 0 ? "text-rose-500" : "text-slate-400"}`}>
+                  <TrendingDown className="w-3 h-3" /> Past Dues Breakdown
+                </p>
+                {pastDuesBreakdown.length > 0 ? (
+                  pastDuesBreakdown.map((due: any) => (
                     <div key={due.id} className="flex justify-between items-center text-xs font-medium text-rose-700 bg-rose-50/50 px-2 py-1 rounded">
                       <span>{due.month}</span>
                       <span className="font-bold">৳{due.due.toLocaleString()}</span>
                     </div>
-                  ))}
-                </div>
-              )}
+                  ))
+                ) : (
+                  <div className="flex justify-between items-center text-xs font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded">
+                    <span>All past dues cleared</span>
+                    <span className="font-bold text-emerald-600">৳ 0</span>
+                  </div>
+                )}
+              </div>
             </div>
           </Card>
 
