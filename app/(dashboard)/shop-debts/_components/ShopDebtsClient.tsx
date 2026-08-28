@@ -222,6 +222,9 @@ export function ShopDebtsClient() {
     ...(monthlyData?.payments?.map((p: any) => ({ ...p, type: "PAYMENT" })) || []),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  const totalMonthlyDebt = monthlyData?.debts?.reduce((acc: number, d: any) => acc + Number(d.amount), 0) || 0;
+  const totalMonthlyPaid = monthlyData?.payments?.reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0;
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -356,13 +359,13 @@ export function ShopDebtsClient() {
 
       {/* Global Stats summaries */}
       <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-        <Store className="w-4 h-4" /> Global Shop Balance (All Months)
+        <Store className="w-4 h-4" /> Shop Balance Overview
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="p-5 bg-white border border-slate-100 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Credit Taken</p>
-            <p className="text-2xl font-bold text-slate-800 mt-1">৳ {Number(summary?.totalDebt ?? 0).toLocaleString()}</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Credit This Month</p>
+            <p className="text-2xl font-bold text-slate-800 mt-1">৳ {Number(totalMonthlyDebt ?? 0).toLocaleString()}</p>
           </div>
           <div className="p-3 bg-slate-50 text-slate-500 rounded-2xl">
             <Store className="w-6 h-6" />
@@ -371,8 +374,8 @@ export function ShopDebtsClient() {
 
         <Card className="p-5 bg-white border border-slate-100 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Paid to Shop</p>
-            <p className="text-2xl font-bold text-emerald-600 mt-1">৳ {Number(summary?.totalPaid ?? 0).toLocaleString()}</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Paid This Month</p>
+            <p className="text-2xl font-bold text-emerald-600 mt-1">৳ {Number(totalMonthlyPaid ?? 0).toLocaleString()}</p>
           </div>
           <div className="p-3 bg-emerald-50 text-emerald-500 rounded-2xl">
             <Check className="w-6 h-6" />
