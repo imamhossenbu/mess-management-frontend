@@ -37,7 +37,7 @@ export function MealsHeader({
   monthlyData,
 }: MealsHeaderProps) {
   const [mealSelections, setMealSelections] = useState<
-    Record<string, { morning: boolean; lunch: boolean; dinner: boolean }>
+    Record<string, { lunch: boolean; dinner: boolean }>
   >({});
 
   useEffect(() => {
@@ -48,7 +48,6 @@ export function MealsHeader({
           (meal: any) => meal.userId === m.userId,
         );
         selections[m.userId] = {
-          morning: existingMeal?.morning || false,
           lunch: existingMeal?.lunch || false,
           dinner: existingMeal?.dinner || false,
         };
@@ -77,7 +76,7 @@ export function MealsHeader({
         </h1>
         <p className="text-slate-500 text-sm mt-1">
           {viewMode === "daily"
-            ? "Track and log daily breakfast, lunch, and dinner bookings."
+            ? "Track and log daily lunch and dinner bookings."
             : `Monthly overview for ${format(selectedDate, "MMMM yyyy")}`}
         </p>
       </div>

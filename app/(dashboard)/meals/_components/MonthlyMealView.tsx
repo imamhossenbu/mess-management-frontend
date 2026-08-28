@@ -49,7 +49,6 @@ export function MonthlyMealView({
     return (
       dayData || {
         totalMeals: 0,
-        totalMorning: 0,
         totalLunch: 0,
         totalDinner: 0,
       }
@@ -63,7 +62,7 @@ export function MonthlyMealView({
   return (
     <div className="space-y-6">
       {/* Monthly Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4 bg-white border border-slate-100">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Total Meals
@@ -72,14 +71,7 @@ export function MonthlyMealView({
             {data?.monthlyTotals?.totalMeals || 0}
           </p>
         </Card>
-        <Card className="p-4 bg-amber-50 border border-amber-100">
-          <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider">
-            Breakfast
-          </p>
-          <p className="text-2xl font-bold text-amber-700 mt-1">
-            {data?.monthlyTotals?.totalMorning || 0}
-          </p>
-        </Card>
+
         <Card className="p-4 bg-blue-50 border border-blue-100">
           <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
             Lunch
@@ -177,7 +169,6 @@ export function MonthlyMealView({
             <thead>
               <tr className="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
                 <th className="pb-3 pl-2">Member</th>
-                <th className="pb-3 text-center">Breakfast</th>
                 <th className="pb-3 text-center">Lunch</th>
                 <th className="pb-3 text-center">Dinner</th>
                 <th className="pb-3 text-right pr-2">Total</th>
@@ -193,9 +184,6 @@ export function MonthlyMealView({
                     <p className="font-semibold text-slate-800 text-sm">
                       {user.userName}
                     </p>
-                  </td>
-                  <td className="py-3 text-center text-amber-600 font-medium">
-                    {user.morning || 0}
                   </td>
                   <td className="py-3 text-center text-blue-600 font-medium">
                     {user.lunch || 0}

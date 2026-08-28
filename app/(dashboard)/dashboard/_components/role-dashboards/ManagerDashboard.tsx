@@ -100,11 +100,6 @@ export default function ManagerDashboard({
   ];
 
   const operationalMetrics = [
-    {
-      label: "Today's Breakfast",
-      value: safeStats.mealsBreakfast ?? 0,
-      icon: Sun,
-    },
     { label: "Today's Lunch", value: safeStats.mealsLunch ?? 0, icon: Sun },
     { label: "Today's Dinner", value: safeStats.mealsDinner ?? 0, icon: Moon },
     { label: "Total Members", value: safeStats.totalMembers ?? 0, icon: Users },

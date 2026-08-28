@@ -29,16 +29,14 @@ interface MonthlyTableViewProps {
   onDateClick?: (date: Date) => void;
 }
 
-type MealType = "morning" | "lunch" | "dinner";
+type MealType = "lunch" | "dinner";
 
 const MEAL_COLORS = {
-  morning: "bg-amber-100 text-amber-700 border-amber-200",
   lunch: "bg-blue-100 text-blue-700 border-blue-200",
   dinner: "bg-purple-100 text-purple-700 border-purple-200",
 };
 
 const MEAL_LABELS = {
-  morning: "🍳 Breakfast",
   lunch: "🍽️ Lunch",
   dinner: "🌙 Dinner",
 };
@@ -86,7 +84,6 @@ export function MonthlyTableView({
     const userMeal = getMealForUser(userId, date);
     if (!userMeal) return 0;
     return (
-      (userMeal.morning ? 1 : 0) +
       (userMeal.lunch ? 1 : 0) +
       (userMeal.dinner ? 1 : 0)
     );
@@ -140,10 +137,7 @@ export function MonthlyTableView({
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-3 text-xs">
         <span className="font-semibold text-slate-500">Legend:</span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded bg-amber-200" />
-          Breakfast
-        </span>
+
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded bg-blue-200" />
           Lunch
@@ -216,11 +210,6 @@ export function MonthlyTableView({
 
                   {/* Member Columns */}
                   {members.map((member) => {
-                    const morning = getMealStatus(
-                      member.userId,
-                      day,
-                      "morning",
-                    );
                     const lunch = getMealStatus(member.userId, day, "lunch");
                     const dinner = getMealStatus(member.userId, day, "dinner");
                     const total = getTotalMealsForUser(member.userId, day);
@@ -233,7 +222,7 @@ export function MonthlyTableView({
                           setHoveredCell({
                             userId: member.userId,
                             date: format(day, "yyyy-MM-dd"),
-                            mealType: "morning",
+                            mealType: "lunch",
                           })
                         }
                         onMouseLeave={() => setHoveredCell(null)}
@@ -249,25 +238,19 @@ export function MonthlyTableView({
                           <div className="flex justify-center gap-0.5">
                             <span
                               className={`w-3 h-3 rounded-full transition-all ${
-                                morning
-                                  ? "bg-amber-400 shadow-sm"
-                                  : "bg-slate-100"
+                                lunch
+                                  ? "bg-blue-400 shadow-sm"
+                                  : "border border-slate-200 bg-slate-50 opacity-40"
                               }`}
-                              title={morning ? "Breakfast ✓" : "Breakfast ✗"}
-                            />
-                            <span
-                              className={`w-3 h-3 rounded-full transition-all ${
-                                lunch ? "bg-blue-400 shadow-sm" : "bg-slate-100"
-                              }`}
-                              title={lunch ? "Lunch ✓" : "Lunch ✗"}
+                              title={`Lunch: ${lunch ? "Yes" : "No"}`}
                             />
                             <span
                               className={`w-3 h-3 rounded-full transition-all ${
                                 dinner
                                   ? "bg-purple-400 shadow-sm"
-                                  : "bg-slate-100"
+                                  : "border border-slate-200 bg-slate-50 opacity-40"
                               }`}
-                              title={dinner ? "Dinner ✓" : "Dinner ✗"}
+                              title={`Dinner: ${dinner ? "Yes" : "No"}`}
                             />
                           </div>
                           {total > 0 && (

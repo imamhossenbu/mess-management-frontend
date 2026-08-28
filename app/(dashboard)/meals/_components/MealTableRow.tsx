@@ -5,8 +5,8 @@ import { Member } from "@/lib/hooks/useUsers";
 
 interface MealTableRowProps {
   member: Member;
-  selections: { morning: boolean; lunch: boolean; dinner: boolean };
-  onToggle: (type: "morning" | "lunch" | "dinner") => void;
+  selections: { lunch: boolean; dinner: boolean };
+  onToggle: (type: "lunch" | "dinner") => void;
   canEdit: boolean;
   isSaving: boolean;
 }
@@ -19,7 +19,6 @@ export function MealTableRow({
   isSaving,
 }: MealTableRowProps) {
   const subtotal =
-    (selections.morning ? 1 : 0) +
     (selections.lunch ? 1 : 0) +
     (selections.dinner ? 1 : 0);
 
@@ -32,16 +31,6 @@ export function MealTableRow({
         <p className="text-[10px] text-slate-400 capitalize">
           {member.role?.toLowerCase() || "member"}
         </p>
-      </td>
-
-      <td className="py-3 text-center">
-        <input
-          type="checkbox"
-          checked={selections.morning}
-          onChange={() => onToggle("morning")}
-          disabled={!canEdit || isSaving}
-          className="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        />
       </td>
 
       <td className="py-3 text-center">

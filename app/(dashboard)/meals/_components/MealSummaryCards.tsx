@@ -11,13 +11,6 @@ interface MealSummaryCardsProps {
 export function MealSummaryCards({ dailySummary }: MealSummaryCardsProps) {
   const cards = [
     {
-      label: "Breakfast",
-      value: dailySummary?.totalMorning ?? 0,
-      color: "text-amber-600",
-      bg: "bg-amber-50",
-      border: "border-amber-100",
-    },
-    {
       label: "Lunch",
       value: dailySummary?.totalLunch ?? 0,
       color: "text-blue-600",
@@ -41,7 +34,7 @@ export function MealSummaryCards({ dailySummary }: MealSummaryCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {cards.map((card) => (
         <Card
           key={card.label}

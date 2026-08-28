@@ -25,7 +25,6 @@ export interface AdminStats extends BaseStats {
     marketings: any[];
     payments: any[];
   };
-  mealsBreakfast?: number;
   mealsLunch?: number;
   mealsDinner?: number;
 }
@@ -47,7 +46,6 @@ export interface MemberStats {
 export interface DailyStats {
   date: string;
   totalMeals: number;
-  totalMorning: number;
   totalLunch: number;
   totalDinner: number;
   totalMarketingCost: number;

@@ -190,11 +190,6 @@ export default function MemberDashboard({ stats, user }: MemberDashboardProps) {
                     {format(new Date(meal.date), "MMM dd, yyyy")}
                   </p>
                   <div className="flex items-center gap-1 mt-0.5">
-                    {meal.morning && (
-                      <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
-                        M
-                      </span>
-                    )}
                     {meal.lunch && (
                       <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
                         L

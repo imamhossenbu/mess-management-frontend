@@ -61,7 +61,6 @@ export function MealsTab({ year, month }: MealsTabProps) {
           <thead>
             <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
               <th className="pb-2.5 pl-2">Member</th>
-              <th className="pb-2.5 text-center">Morning</th>
               <th className="pb-2.5 text-center">Lunch</th>
               <th className="pb-2.5 text-center">Dinner</th>
               <th className="pb-2.5 text-center">Total</th>
@@ -84,7 +83,6 @@ export function MealsTab({ year, month }: MealsTabProps) {
                   return (
                     <tr key={u.userId ?? u.id} className="hover:bg-slate-50/50 transition">
                       <td className="py-3 pl-2 font-semibold text-slate-800">{u.userName ?? u.name}</td>
-                      <td className="py-3 text-center text-slate-600">{u.morning ?? "—"}</td>
                       <td className="py-3 text-center text-slate-600">{u.lunch ?? "—"}</td>
                       <td className="py-3 text-center text-slate-600">{u.dinner ?? "—"}</td>
                       <td className="py-3 text-center font-bold text-slate-800">{total}</td>
@@ -100,7 +98,6 @@ export function MealsTab({ year, month }: MealsTabProps) {
             <tfoot>
               <tr className="border-t-2 border-slate-200 bg-slate-50 text-xs font-bold text-slate-600">
                 <td className="py-3 pl-2">TOTAL</td>
-                <td className="py-3 text-center">—</td>
                 <td className="py-3 text-center">—</td>
                 <td className="py-3 text-center">—</td>
                 <td className="py-3 text-center">{totalMeals}</td>

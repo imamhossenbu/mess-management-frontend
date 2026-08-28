@@ -6,7 +6,6 @@ export interface Meal {
   userId: string;
   userName: string;
   date: string;
-  morning: boolean;
   lunch: boolean;
   dinner: boolean;
   totalMeal: number;
@@ -14,7 +13,6 @@ export interface Meal {
 
 export interface DailyMealSummary {
   date: string;
-  totalMorning: number;
   totalLunch: number;
   totalDinner: number;
   totalMeals: number;
@@ -26,14 +24,12 @@ export interface DailyMealSummary {
 export interface CreateMealData {
   userId: string;
   date?: string;
-  morning?: boolean;
   lunch?: boolean;
   dinner?: boolean;
 }
 
 export interface BulkMealData {
   date: string;
-  morningUserIds: string[];
   lunchUserIds: string[];
   dinnerUserIds: string[];
 }
@@ -55,7 +51,7 @@ export const mealsApi = {
 
   update: (
     id: string,
-    data: { morning?: boolean; lunch?: boolean; dinner?: boolean },
+    data: { lunch?: boolean; dinner?: boolean },
   ) => apiClient.patch(`/meals/${id}`, data),
 
   delete: (id: string) => apiClient.delete(`/meals/${id}`),

@@ -44,20 +44,18 @@ export function MealsClient() {
   const isLoading = loadingMembers || (viewMode === "daily" ? loadingDaily : loadingMonthly);
 
   const handleSave = (
-    mealSelections: Record<string, { morning: boolean; lunch: boolean; dinner: boolean }>,
+    mealSelections: Record<string, { lunch: boolean; dinner: boolean }>,
   ) => {
-    const morningUserIds: string[] = [];
     const lunchUserIds: string[] = [];
     const dinnerUserIds: string[] = [];
 
     Object.entries(mealSelections).forEach(([userId, select]) => {
-      if (select.morning) morningUserIds.push(userId);
       if (select.lunch) lunchUserIds.push(userId);
       if (select.dinner) dinnerUserIds.push(userId);
     });
 
     bulkMealsMutation.mutate(
-      { date: dateString, morningUserIds, lunchUserIds, dinnerUserIds },
+      { date: dateString, lunchUserIds, dinnerUserIds },
       { onSuccess: () => { refetchDaily(); refetchMonthly(); } },
     );
   };

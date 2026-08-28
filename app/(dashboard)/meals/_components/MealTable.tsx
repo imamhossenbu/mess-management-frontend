@@ -26,7 +26,7 @@ export function MealTable({
   onSave,
 }: MealTableProps) {
   const [mealSelections, setMealSelections] = useState<
-    Record<string, { morning: boolean; lunch: boolean; dinner: boolean }>
+    Record<string, { lunch: boolean; dinner: boolean }>
   >({});
 
   // ✅ Populate selections from dailySummary
@@ -39,7 +39,6 @@ export function MealTable({
           (meal: any) => meal.userId === m.userId,
         );
         selections[m.userId] = {
-          morning: existingMeal?.morning || false,
           lunch: existingMeal?.lunch || false,
           dinner: existingMeal?.dinner || false,
         };
@@ -57,7 +56,7 @@ export function MealTable({
 
   const handleToggle = (
     userId: string,
-    type: "morning" | "lunch" | "dinner",
+    type: "lunch" | "dinner",
   ) => {
     if (!canEdit) return;
     setMealSelections((prev) => ({
@@ -122,7 +121,6 @@ export function MealTable({
           <thead>
             <tr className="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
               <th className="pb-3 pl-2">Member</th>
-              <th className="pb-3 text-center">Breakfast</th>
               <th className="pb-3 text-center">Lunch</th>
               <th className="pb-3 text-center">Dinner</th>
               <th className="pb-3 text-right pr-2">Total</th>
@@ -135,7 +133,6 @@ export function MealTable({
                 member={member}
                 selections={
                   mealSelections[member.userId] || {
-                    morning: false,
                     lunch: false,
                     dinner: false,
                   }
