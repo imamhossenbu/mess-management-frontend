@@ -155,8 +155,8 @@ export default function ProfilePage() {
 
   const balance = Number(balanceDetails?.balance ?? 0);
   const totalPaid = Number(balanceDetails?.totalPaid ?? 0);
-  const isDue = balance > 0;
-  const isAdvance = balance < 0;
+  const isDue = balance < 0;
+  const isAdvance = balance > 0;
 
   return (
     <div className="space-y-8 max-w-4xl">
