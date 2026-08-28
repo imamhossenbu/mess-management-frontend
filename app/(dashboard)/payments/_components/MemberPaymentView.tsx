@@ -225,12 +225,6 @@ export function MemberPaymentView({
                   </div>
                   <div className="text-[11px] text-emerald-600 space-y-1">
                     <div className="flex justify-between items-center">
-                      <span>Previous Month Balance:</span>
-                      <span className="font-bold">
-                        ৳{Math.abs(Number(monthlySummaryData.previousDue)).toLocaleString()} {Number(monthlySummaryData.previousDue) > 0 ? "(Due)" : Number(monthlySummaryData.previousDue) < 0 ? "(Adv)" : ""}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
                       <span>(+) Bill This Month:</span>
                       <span className="font-bold">৳{Number(monthlySummaryData.totalBill).toLocaleString()}</span>
                     </div>
