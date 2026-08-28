@@ -29,6 +29,8 @@ interface MembersGridProps {
   onApprove?: (userId: string) => void;
   onRefetch: () => void;
   isRemoving?: boolean;
+  isUpdatingRole?: boolean;
+  isUpdatingStatus?: boolean;
 }
 
 export function MembersGrid({
@@ -43,6 +45,8 @@ export function MembersGrid({
   onApprove,
   onRefetch,
   isRemoving = false,
+  isUpdatingRole = false,
+  isUpdatingStatus = false,
 }: MembersGridProps) {
   if (members.length === 0) {
     return (
@@ -71,6 +75,8 @@ export function MembersGrid({
           onStatusToggle={onStatusToggle}
           onApprove={onApprove}
           isRemoving={isRemoving}
+          isUpdatingRole={isUpdatingRole}
+          isUpdatingStatus={isUpdatingStatus}
         />
       ))}
     </div>

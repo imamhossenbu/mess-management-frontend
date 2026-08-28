@@ -159,5 +159,7 @@ export function useUsers() {
     updateMemberStatus,
     deactivateMember,
     isRemoving: removeMember.isPending,
+    isUpdatingRole: updateMemberRole.isPending,
+    isUpdatingStatus: updateMemberStatus.isPending,
   };
 }

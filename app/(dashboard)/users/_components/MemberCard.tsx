@@ -45,6 +45,8 @@ interface MemberCardProps {
   onStatusToggle?: (userId: string, isActive: boolean) => void;
   onApprove?: (userId: string) => void;
   isRemoving?: boolean;
+  isUpdatingRole?: boolean;
+  isUpdatingStatus?: boolean;
 }
 
 export function MemberCard({
@@ -58,6 +60,8 @@ export function MemberCard({
   onStatusToggle,
   onApprove,
   isRemoving = false,
+  isUpdatingRole = false,
+  isUpdatingStatus = false,
 }: MemberCardProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -189,16 +193,23 @@ export function MemberCard({
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
             {/* Role change — admin only */}
             {isAdmin && (
-              <select
-                value={member.role}
-                onChange={(e) => onRoleChange(member.userId, e.target.value)}
-                className="px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary-100 flex-1"
-                disabled={isRemoving}
-              >
-                <option value="MEMBER">Member</option>
-                <option value="MANAGER">Manager</option>
-                <option value="ADMIN">Admin</option>
-              </select>
+              <div className="flex-1 relative">
+                <select
+                  value={member.role}
+                  onChange={(e) => onRoleChange(member.userId, e.target.value)}
+                  className={`w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary-100 ${isUpdatingRole ? 'opacity-50 cursor-wait' : ''}`}
+                  disabled={isRemoving || isUpdatingRole}
+                >
+                  <option value="MEMBER">Member</option>
+                  <option value="MANAGER">Manager</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+                {isUpdatingRole && (
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-500" />
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Manager can see role but not change */}
@@ -217,9 +228,10 @@ export function MemberCard({
                 <button
                   type="button"
                   onClick={() => onApprove(member.userId)}
-                  disabled={isRemoving}
-                  className="px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded hover:bg-amber-600 transition"
+                  disabled={isRemoving || isUpdatingStatus}
+                  className={`px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded hover:bg-amber-600 transition flex items-center gap-1 ${isUpdatingStatus ? 'opacity-50 cursor-wait' : ''}`}
                 >
+                  {isUpdatingStatus ? <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-white inline-block" /> : null}
                   Approve
                 </button>
               )}
@@ -229,15 +241,19 @@ export function MemberCard({
                 <button
                   type="button"
                   onClick={() => setShowStatusModal(true)}
-                  disabled={isRemoving}
+                  disabled={isRemoving || isUpdatingStatus}
                   title={isActive ? "Deactivate member" : "Activate member"}
-                  className={`p-1.5 rounded-lg transition border text-xs ${
+                  className={`p-1.5 rounded-lg transition border text-xs relative ${
                     isActive
                       ? "text-emerald-500 hover:bg-emerald-50 border-transparent hover:border-emerald-100"
                       : "text-slate-400 hover:bg-slate-50 border-transparent hover:border-slate-200"
-                  }`}
+                  } ${isUpdatingStatus ? 'opacity-50 cursor-wait' : ''}`}
                 >
-                  {isActive ? (
+                  {isUpdatingStatus ? (
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
+                    </div>
+                  ) : isActive ? (
                     <ToggleRight className="w-5 h-5" />
                   ) : (
                     <ToggleLeft className="w-5 h-5" />

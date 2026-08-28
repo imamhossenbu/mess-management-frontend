@@ -385,6 +385,17 @@ export const useAuth = () => {
     retry: false,
   });
 
+  // Sync profile data to auth store
+  useEffect(() => {
+    if (profile && isAuthenticated) {
+      const typedUser: User = {
+        ...profile,
+        role: profile.role as "ADMIN" | "MANAGER" | "MEMBER",
+      };
+      setUser(typedUser);
+    }
+  }, [profile, isAuthenticated, setUser]);
+
   // ==================== AUTO CHECK EVERY 30 SECONDS ====================
   useEffect(() => {
     if (!isAuthenticated || !accessToken) return;

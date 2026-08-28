@@ -16,7 +16,7 @@ import { RefreshCw } from "lucide-react";
 export default function InventoryPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { user, isAdmin, isManager } = useAuth();
-  const canEdit = isAdmin || isManager;
+  const canEdit = true; // All active members can manage inventory
 
   const {
     data: inventory,
@@ -25,10 +25,6 @@ export default function InventoryPage() {
     refetch,
     isRefetching
   } = useInventory();
-
-  if (!canEdit) {
-    return <AccessDenied />;
-  }
 
   if (isLoading) {
     return <InventorySkeleton />;

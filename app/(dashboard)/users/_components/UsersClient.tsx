@@ -27,6 +27,8 @@ export function UsersClient() {
     updateMemberStatus,
     refetch,
     isRemoving,
+    isUpdatingRole,
+    isUpdatingStatus,
   } = useUsers();
 
   const handleRoleChange   = (userId: string, role: string) => updateMemberRole.mutate({ userId, role });
@@ -84,6 +86,8 @@ export function UsersClient() {
         onApprove={handleApprove}
         onRefetch={refetch}
         isRemoving={isRemoving}
+        isUpdatingRole={isUpdatingRole}
+        isUpdatingStatus={isUpdatingStatus}
       />
     </div>
   );
