@@ -27,12 +27,16 @@ export interface MonthlySummary {
   totalBill: number;
   totalPaid: number;
   totalDue: number;
+  adjustmentFromPrevious: number;
+  adjustmentToNext: number;
   userSummaries: UserMonthlySummary[];
 }
 
 export interface GenerateMonthlySummaryData {
   year: number;
   month: number;
+  adjustmentFromPrevious?: number;
+  adjustmentToNext?: number;
 }
 
 export const monthlySummaryApi = {

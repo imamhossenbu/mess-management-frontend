@@ -57,6 +57,9 @@ export function MonthlySummaryClient() {
   const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth() + 1);
   const [activeTab, setActiveTab] = useState<TabKey>("summary");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [adjFromPrev, setAdjFromPrev] = useState<string>("0");
+  const [adjToNext, setAdjToNext] = useState<string>("0");
 
   // ── Only fetch the compiled summary sheet ──
   const { data: summary, isLoading } = useQuery({
@@ -70,9 +73,15 @@ export function MonthlySummaryClient() {
   });
 
   const generateMutation = useMutation({
-    mutationFn: () => monthlySummaryApi.generate({ year: selectedYear, month: selectedMonth }),
+    mutationFn: () => monthlySummaryApi.generate({ 
+      year: selectedYear, 
+      month: selectedMonth,
+      adjustmentFromPrevious: Number(adjFromPrev) || 0,
+      adjustmentToNext: Number(adjToNext) || 0,
+    }),
     onSuccess: () => {
       toast.success("Monthly summary generated!");
+      setShowGenerateModal(false);
       queryClient.invalidateQueries({ queryKey: ["monthly-summary-sheet", selectedYear, selectedMonth] });
     },
     onError: (err: any) => toast.error(err.response?.data?.message || "Failed to generate summary"),
@@ -94,6 +103,13 @@ export function MonthlySummaryClient() {
   const handleClearConfirm = () => {
     deleteMutation.mutate();
     setShowClearConfirm(false);
+  };
+
+  const handleOpenGenerateModal = () => {
+    console.log("Opening generate modal...", { summary });
+    setAdjFromPrev(summary?.isGenerated ? String(summary.adjustmentFromPrevious || 0) : "0");
+    setAdjToNext(summary?.isGenerated ? String(summary.adjustmentToNext || 0) : "0");
+    setShowGenerateModal(true);
   };
 
   const handleExportCSV = () => {
@@ -149,53 +165,49 @@ export function MonthlySummaryClient() {
         : Number(u.currentDue) < 0
           ? `Adv: ৳${Math.abs(Number(u.currentDue)).toLocaleString()}`
           : "Cleared";
-      const statusClass = Number(u.currentDue) > 0
-        ? "text-rose-600 font-bold"
-        : Number(u.currentDue) < 0
-          ? "text-emerald-600 font-bold"
-          : "text-slate-500";
+      const statusColor = Number(u.currentDue) > 0 ? 'text-rose-600' : Number(u.currentDue) < 0 ? 'text-emerald-600' : 'text-slate-500';
 
       return `
         <tr>
-          <td style="padding: 8px; border: 1px solid #cbd5e1;">${u.userName}</td>
+          <td style="padding: 8px; border: 1px solid #cbd5e1;">
+            <strong>${u.userName}</strong>
+            <div style="font-size: 10px; color: #64748b;">${u.phone}</div>
+          </td>
           <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${u.totalMeal}</td>
           <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">৳ ${Number(u.mealBill).toFixed(2)}</td>
           <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">৳ ${Number(u.utilityShare).toFixed(2)}</td>
           <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold;">৳ ${Number(u.totalBill).toFixed(2)}</td>
-          <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; color: #16a34a;">৳ ${Number(u.totalPaid).toLocaleString()}</td>
-          <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">৳ ${Number(u.previousDue).toFixed(2)}</td>
-          <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;" class="${statusClass}">${statusText}</td>
+          <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; color: #16a34a; font-weight: bold;">৳ ${Number(u.totalPaid).toLocaleString()}</td>
+          <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; color: #64748b;">৳ ${Number(u.previousDue).toFixed(2)}</td>
+          <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold;" class="${statusColor}">${statusText}</td>
         </tr>
       `;
     }).join("");
 
-    const printContent = `
-      <!DOCTYPE html>
+    printWindow.document.write(`
       <html>
       <head>
-        <title>Mess Monthly Summary - ${summary.month} ${summary.year}</title>
+        <title>Mess Report - ${summary.month} ${summary.year}</title>
         <style>
           body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 40px;
+            font-family: system-ui, -apple-system, sans-serif;
             color: #1e293b;
             line-height: 1.5;
-            background-color: #fff;
+            padding: 20px;
           }
           .header {
             text-align: center;
-            margin-bottom: 25px;
-            border-bottom: 2px solid #334155;
-            padding-bottom: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
           }
           .header h1 {
-            margin: 0;
-            font-size: 24px;
+            margin: 0 0 10px 0;
             color: #0f172a;
-            letter-spacing: 0.5px;
+            font-size: 24px;
           }
           .header p {
-            margin: 6px 0 0;
+            margin: 0;
             color: #64748b;
             font-size: 13px;
           }
@@ -245,14 +257,9 @@ export function MonthlySummaryClient() {
             font-weight: bold;
             background-color: #e2e8f0 !important;
           }
-          .text-rose-600 { color: #dc2626; font-weight: bold; }
-          .text-emerald-600 { color: #16a34a; font-weight: bold; }
+          .text-rose-600 { color: #dc2626; }
+          .text-emerald-600 { color: #16a34a; }
           .text-slate-500 { color: #64748b; }
-          @media print {
-            body { margin: 20px; }
-            .metric-card { background: #fff !important; border: 1px solid #cbd5e1 !important; }
-            button { display: none !important; }
-          }
         </style>
       </head>
       <body>
@@ -307,27 +314,20 @@ export function MonthlySummaryClient() {
             </tr>
           </tbody>
         </table>
-        
-        <div style="margin-top: 50px; font-size: 10px; color: #94a3b8; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
-          Generated automatically by Mess Management System. Document is valid without signature.
+        <div style="margin-top: 40px; display: flex; justify-content: space-between; padding-top: 40px;">
+          <div style="text-align: center; width: 200px; border-top: 1px solid #cbd5e1; padding-top: 10px;">Manager Signature</div>
+          <div style="text-align: center; width: 200px; border-top: 1px solid #cbd5e1; padding-top: 10px;">Date</div>
         </div>
-
         <script>
-          window.onload = function() {
+          window.onload = () => {
             window.print();
-            setTimeout(function() { window.close(); }, 500);
-          }
+          };
         </script>
       </body>
       </html>
-    `;
-
-    printWindow.document.open();
-    printWindow.document.write(printContent);
+    `);
     printWindow.document.close();
   };
-
-
 
   // ── When month/year changes, prefetch related tab data ──
   const handleMonthChange = (month: number) => {
@@ -340,13 +340,15 @@ export function MonthlySummaryClient() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Monthly Report</h1>
-          <p className="text-slate-500 mt-0.5 text-sm">
-            Full financial breakdown — bazar, meals, payments and balances
+          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+            Monthly Summary
+          </h1>
+          <p className="text-sm text-slate-500 font-medium mt-1">
+            Calculate and finalize meal rates, bills, and balances.
           </p>
         </div>
 
@@ -383,11 +385,13 @@ export function MonthlySummaryClient() {
       ) : summary?.isGenerated ? (
         <>
           {/* ── Metric Cards ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <MetricCard label="Meal Rate"        value={`৳ ${Number(summary.mealRate).toFixed(2)}`} accent="text-primary-600" sub="per meal" />
             <MetricCard label="Total Meals"      value={String(summary.totalMeals)}                 accent="text-slate-800"   sub="this month" />
-            <MetricCard label="Total Bazar Cost" value={`৳ ${Number(summary.totalMealBill).toLocaleString()}`} accent="text-slate-800" sub="market expense" />
+            <MetricCard label="Total Bazar"      value={`৳ ${Number(summary.totalMealBill).toLocaleString()}`} accent="text-slate-800" sub="bought this month" />
             <MetricCard label="Utility Bills"    value={`৳ ${Number(summary.totalUtilityBill).toLocaleString()}`} accent="text-slate-800" sub="shared cost" />
+            <MetricCard label="(+) Prev Month"   value={`৳ ${Number(summary.adjustmentFromPrevious || 0).toLocaleString()}`} accent="text-amber-600" sub="leftover used" />
+            <MetricCard label="(-) Next Month"   value={`৳ ${Number(summary.adjustmentToNext || 0).toLocaleString()}`} accent="text-emerald-600" sub="saved for next" />
           </div>
 
           {/* ── Due / Advance ── */}
@@ -421,7 +425,7 @@ export function MonthlySummaryClient() {
             {isManager && (
               <div className="flex gap-2">
                 <button
-                  onClick={() => generateMutation.mutate()}
+                  onClick={handleOpenGenerateModal}
                   disabled={generateMutation.isPending}
                   className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer shadow-sm"
                 >
@@ -475,7 +479,7 @@ export function MonthlySummaryClient() {
           year={selectedYear}
           isManager={isManager}
           isPending={generateMutation.isPending}
-          onGenerate={() => generateMutation.mutate()}
+          onGenerate={handleOpenGenerateModal}
           onViewTab={setActiveTab}
           activeTab={activeTab}
           selectedYear={selectedYear}
@@ -494,11 +498,123 @@ export function MonthlySummaryClient() {
         variant="danger"
         isLoading={deleteMutation.isPending}
       />
+
+      {showGenerateModal && (
+        <GenerateSummaryModal
+          month={selectedMonth}
+          year={selectedYear}
+          adjFromPrev={adjFromPrev}
+          adjToNext={adjToNext}
+          onAdjFromPrevChange={setAdjFromPrev}
+          onAdjToNextChange={setAdjToNext}
+          onClose={() => setShowGenerateModal(false)}
+          onConfirm={() => generateMutation.mutate()}
+          isPending={generateMutation.isPending}
+        />
+      )}
     </div>
   );
 }
 
 // ─── Pure display sub-components ───────────────────────────────────────────
+
+function GenerateSummaryModal({
+  month, year, adjFromPrev, adjToNext, onAdjFromPrevChange, onAdjToNextChange, onClose, onConfirm, isPending
+}: {
+  month: number; year: number; adjFromPrev: string; adjToNext: string;
+  onAdjFromPrevChange: (v: string) => void; onAdjToNextChange: (v: string) => void;
+  onClose: () => void; onConfirm: () => void; isPending: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl animate-in zoom-in-95 duration-200">
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <div>
+            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-primary-500" />
+              Compile Summary Sheet
+            </h3>
+            <p className="text-xs text-slate-500 font-medium mt-1">
+              For {MONTHS[month - 1]} {year}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200/50 text-slate-500 hover:bg-slate-200 transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6 bg-white">
+          <div className="bg-amber-50 border border-amber-100 text-amber-800 text-xs px-4 py-3 rounded-xl flex gap-3 leading-relaxed">
+            <ShoppingBag className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <p>
+              If there are leftover groceries from last month, or you are carrying over groceries to next month, enter the amounts below to calculate the perfect Meal Rate.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                (+) Adjustment From Previous Month
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">৳</span>
+                <input
+                  type="number"
+                  value={adjFromPrev}
+                  onChange={(e) => onAdjFromPrevChange(e.target.value)}
+                  className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  placeholder="0"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">Amount of leftover bazar from last month used this month.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                (-) Adjustment To Next Month
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">৳</span>
+                <input
+                  type="number"
+                  value={adjToNext}
+                  onChange={(e) => onAdjToNextChange(e.target.value)}
+                  className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  placeholder="0"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">Amount of bazar bought this month saved for next month.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5 border-t border-slate-100 bg-slate-50 flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isPending}
+            className="px-5 py-2.5 text-sm font-bold text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm shadow-primary-500/20"
+          >
+            {isPending ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+            Confirm Generate
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function MetricCard({ label, value, accent, sub }: {
   label: string; value: string; accent: string; sub: string;
