@@ -32,6 +32,7 @@ export function UsersClient() {
   const handleRoleChange   = (userId: string, role: string) => updateMemberRole.mutate({ userId, role });
   const handleRemoveMember = (userId: string)               => removeMember.mutate(userId);
   const handleStatusToggle = (userId: string, isActive: boolean) => updateMemberStatus.mutate({ userId, isActive });
+  const handleApprove      = (userId: string) => updateMemberStatus.mutate({ userId, approvalStatus: "APPROVED" });
 
   const filteredMembers = members?.filter(
     (m) =>
@@ -80,6 +81,7 @@ export function UsersClient() {
         onRoleChange={handleRoleChange}
         onRemoveMember={handleRemoveMember}
         onStatusToggle={handleStatusToggle}
+        onApprove={handleApprove}
         onRefetch={refetch}
         isRemoving={isRemoving}
       />

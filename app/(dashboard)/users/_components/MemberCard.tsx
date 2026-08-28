@@ -31,6 +31,7 @@ interface Member {
   joinedDate: string;
   profileImage?: string;
   isActive?: boolean;
+  approvalStatus?: string;
 }
 
 interface MemberCardProps {
@@ -42,6 +43,7 @@ interface MemberCardProps {
   onRoleChange: (userId: string, role: string) => void;
   onRemove: (userId: string) => void;
   onStatusToggle?: (userId: string, isActive: boolean) => void;
+  onApprove?: (userId: string) => void;
   isRemoving?: boolean;
 }
 
@@ -54,6 +56,7 @@ export function MemberCard({
   onRoleChange,
   onRemove,
   onStatusToggle,
+  onApprove,
   isRemoving = false,
 }: MemberCardProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -111,11 +114,15 @@ export function MemberCard({
         <div className="flex items-start gap-3">
           <div className="relative">
             <Avatar name={member.userName} size="lg" image={member.profileImage} />
-            {!isActive && (
+            {member.approvalStatus === "PENDING" ? (
+              <span className="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[8px] px-1 rounded-full font-bold leading-4">
+                WAIT
+              </span>
+            ) : !isActive ? (
               <span className="absolute -bottom-1 -right-1 bg-slate-400 text-white text-[8px] px-1 rounded-full font-bold leading-4">
                 OFF
               </span>
-            )}
+            ) : null}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -205,8 +212,20 @@ export function MemberCard({
             )}
 
             <div className="flex items-center gap-1">
+              {/* Approve — admin only */}
+              {isAdmin && member.approvalStatus === "PENDING" && onApprove && (
+                <button
+                  type="button"
+                  onClick={() => onApprove(member.userId)}
+                  disabled={isRemoving}
+                  className="px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded hover:bg-amber-600 transition"
+                >
+                  Approve
+                </button>
+              )}
+
               {/* Status toggle — admin only */}
-              {isAdmin && onStatusToggle && (
+              {isAdmin && member.approvalStatus !== "PENDING" && onStatusToggle && (
                 <button
                   type="button"
                   onClick={() => setShowStatusModal(true)}

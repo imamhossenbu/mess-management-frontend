@@ -14,6 +14,8 @@ export interface Member {
   balance: number;
   joinedDate: string;
   profileImage?: string;
+  isActive?: boolean;
+  approvalStatus?: string;
 }
 
 export function useUsers() {
@@ -39,7 +41,8 @@ export function useUsers() {
         balance: user.balance || 0,
         joinedDate: user.joinedDate || user.createdAt,
         profileImage: user.profileImage,
-        isActive: user.isActive !== false, // default true
+        isActive: user.isActive !== false,
+        approvalStatus: user.approvalStatus,
       }));
     },
     staleTime: 5 * 60 * 1000,
@@ -103,11 +106,17 @@ export function useUsers() {
     mutationFn: async ({
       userId,
       isActive,
+      approvalStatus,
     }: {
       userId: string;
-      isActive: boolean;
+      isActive?: boolean;
+      approvalStatus?: string;
     }) => {
-      const response = await usersApi.update(userId, { isActive });
+      const payload: any = {};
+      if (isActive !== undefined) payload.isActive = isActive;
+      if (approvalStatus !== undefined) payload.approvalStatus = approvalStatus;
+      
+      const response = await usersApi.update(userId, payload);
       return response.data;
     },
     onSuccess: () => {

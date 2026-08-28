@@ -26,6 +26,7 @@ interface MembersGridProps {
   onRoleChange: (userId: string, role: string) => void;
   onRemoveMember: (userId: string) => void;
   onStatusToggle?: (userId: string, isActive: boolean) => void;
+  onApprove?: (userId: string) => void;
   onRefetch: () => void;
   isRemoving?: boolean;
 }
@@ -39,6 +40,7 @@ export function MembersGrid({
   onRoleChange,
   onRemoveMember,
   onStatusToggle,
+  onApprove,
   onRefetch,
   isRemoving = false,
 }: MembersGridProps) {
@@ -67,6 +69,7 @@ export function MembersGrid({
           onRoleChange={onRoleChange}
           onRemove={onRemoveMember}
           onStatusToggle={onStatusToggle}
+          onApprove={onApprove}
           isRemoving={isRemoving}
         />
       ))}
