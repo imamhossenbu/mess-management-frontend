@@ -26,7 +26,6 @@ export function SummaryTab({ summary }: SummaryTabProps) {
               <th className="pb-3 text-right">Utility</th>
               <th className="pb-3 text-right">Total Bill</th>
               <th className="pb-3 text-right">Deposited</th>
-              <th className="pb-3 text-right">Prev Due</th>
               <th className="pb-3 text-right pr-2">Status</th>
             </tr>
           </thead>
@@ -44,7 +43,6 @@ export function SummaryTab({ summary }: SummaryTabProps) {
                 <td className="py-3.5 text-right text-emerald-600 font-semibold">
                   ৳ {Number(u.totalPaid).toLocaleString()}
                 </td>
-                <td className="py-3.5 text-right text-slate-500">৳ {Number(u.previousDue).toFixed(2)}</td>
                 <td className="py-3.5 text-right pr-2">
                   <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold ${
                     Number(u.currentDue) > 0
@@ -71,7 +69,6 @@ export function SummaryTab({ summary }: SummaryTabProps) {
               <td className="py-3 text-right">৳ {Number(summary.totalUtilityBill).toLocaleString()}</td>
               <td className="py-3 text-right">৳ {Number(summary.totalBill).toLocaleString()}</td>
               <td className="py-3 text-right text-emerald-600">৳ {Number(summary.totalPaid).toLocaleString()}</td>
-              <td className="py-3 text-right">—</td>
               <td className="py-3 text-right pr-2 text-rose-600">৳ {Number(summary.totalDue).toLocaleString()}</td>
             </tr>
           </tfoot>

@@ -27,11 +27,11 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
-type NavItem = { icon: React.ElementType; label: string; href: string; badgeKey?: string };
-type NavGroup = { label: string; items: NavItem[] };
+export type NavItem = { icon: React.ElementType; label: string; href: string; badgeKey?: string };
+export type NavGroup = { label: string; items: NavItem[] };
 
 // ✅ Updated NAV - Users added for all roles
-const ADMIN_NAV: NavGroup[] = [
+export const ADMIN_NAV: NavGroup[] = [
   {
     label: "Overview",
     items: [{ icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" }],
@@ -62,7 +62,7 @@ const ADMIN_NAV: NavGroup[] = [
   },
 ];
 
-const MANAGER_NAV: NavGroup[] = [
+export const MANAGER_NAV: NavGroup[] = [
   {
     label: "Overview",
     items: [{ icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" }],
@@ -93,7 +93,7 @@ const MANAGER_NAV: NavGroup[] = [
   },
 ];
 
-const MEMBER_NAV: NavGroup[] = [
+export const MEMBER_NAV: NavGroup[] = [
   {
     label: "Overview",
     items: [{ icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" }],
@@ -104,6 +104,11 @@ const MEMBER_NAV: NavGroup[] = [
       { icon: Users, label: "Members", href: "/users" },
       { icon: Utensils, label: "Meals", href: "/meals" },
       { icon: ShoppingBag, label: "Bazar", href: "/marketings" },
+    ],
+  },
+  {
+    label: "My Financials",
+    items: [
       { icon: CreditCard, label: "Payments", href: "/payments" },
       { icon: Calendar, label: "Monthly Summary", href: "/monthly-summary" },
     ],
@@ -116,35 +121,32 @@ const MEMBER_NAV: NavGroup[] = [
   },
 ];
 
-const ROLE_BRAND = {
+export const ROLE_BRAND = {
   SUPER_ADMIN: {
     label: "Super Admin",
     icon: Crown,
-    gradient: "from-amber-500 to-orange-500",
-    accent: "bg-amber-500",
+    gradient: "from-amber-500 to-amber-600",
   },
   ADMIN: {
-    label: "Admin",
+    label: "Admin Portal",
     icon: Shield,
-    gradient: "from-violet-500 to-purple-600",
-    accent: "bg-violet-500",
+    gradient: "from-violet-500 to-violet-600",
   },
   MANAGER: {
-    label: "Manager",
+    label: "Manager Portal",
     icon: Shield,
-    gradient: "from-blue-500 to-indigo-600",
-    accent: "bg-blue-500",
+    gradient: "from-blue-500 to-blue-600",
   },
   MEMBER: {
-    label: "Member",
+    label: "Member Portal",
     icon: UserCheck,
-    gradient: "from-emerald-500 to-teal-600",
-    accent: "bg-emerald-500",
+    gradient: "from-emerald-500 to-emerald-600",
   },
 };
 
-function getNavGroups(role: string): NavGroup[] {
-  if (role === "SUPER_ADMIN" || role === "ADMIN") return ADMIN_NAV;
+export function getNavGroups(role: string): NavGroup[] {
+  if (role === "SUPER_ADMIN") return ADMIN_NAV;
+  if (role === "ADMIN") return ADMIN_NAV;
   if (role === "MANAGER") return MANAGER_NAV;
   return MEMBER_NAV;
 }
@@ -194,7 +196,7 @@ export const Sidebar = () => {
       animate={{ width: collapsed ? 68 : 248 }}
       initial={false}
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-      className={`shrink-0 bg-slate-900 h-screen sticky top-0 flex flex-col overflow-hidden border-r border-white/[0.06] ${
+      className={`shrink-0 bg-slate-900 h-screen sticky top-0 hidden md:flex flex-col overflow-hidden border-r border-white/[0.06] ${
         hydrated ? "" : "duration-0"
       }`}
     >
