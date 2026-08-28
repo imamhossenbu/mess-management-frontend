@@ -218,9 +218,31 @@ export function MemberPaymentView({
                   Showing Live Running Balance (Uncompiled Month)
                 </div>
               ) : (
-                <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 font-medium">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  Finalized Balance for {format(new Date(selectedYear, selectedMonth - 1, 1), "MMMM yyyy")}
+                <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl flex flex-col gap-1.5 font-medium w-full">
+                  <div className="flex items-center gap-1.5 border-b border-emerald-100 pb-1.5 mb-0.5">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    Finalized Balance for {format(new Date(selectedYear, selectedMonth - 1, 1), "MMMM yyyy")}
+                  </div>
+                  <div className="text-[11px] text-emerald-600 space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span>Previous Month Balance:</span>
+                      <span className="font-bold">
+                        ৳{Math.abs(Number(monthlySummaryData.previousDue)).toLocaleString()} {Number(monthlySummaryData.previousDue) > 0 ? "(Due)" : Number(monthlySummaryData.previousDue) < 0 ? "(Adv)" : ""}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>(+) Bill This Month:</span>
+                      <span className="font-bold">৳{Number(monthlySummaryData.totalBill).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>(-) Paid This Month:</span>
+                      <span className="font-bold">৳{Number(monthlySummaryData.totalPaid).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-t border-emerald-200/60 pt-1 mt-1 font-extrabold text-emerald-800">
+                      <span>Final {Number(monthlySummaryData.currentDue) > 0 ? "Due" : "Advance"}:</span>
+                      <span>৳{Math.abs(Number(monthlySummaryData.currentDue)).toLocaleString()}</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
