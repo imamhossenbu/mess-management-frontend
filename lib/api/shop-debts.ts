@@ -7,9 +7,21 @@ export interface ShopDebt {
   date: string;
   itemDetails?: string;
   amount: number;
-  status: string;
-  paidDate?: string;
   note?: string;
+  recordedById?: string;
+  recordedByName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ShopPayment {
+  id: string;
+  shopName: string;
+  date: string;
+  amount: number;
+  note?: string;
+  paidById?: string;
+  paidByName?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -19,7 +31,13 @@ export interface CreateShopDebtData {
   date?: string;
   itemDetails?: string;
   amount: number;
-  status?: string;
+  note?: string;
+}
+
+export interface CreateShopPaymentData {
+  shopName: string;
+  date?: string;
+  amount: number;
   note?: string;
 }
 
@@ -27,61 +45,40 @@ export interface UpdateShopDebtData {
   shopName?: string;
   itemDetails?: string;
   amount?: number;
-  status?: string;
-  paidDate?: string;
   note?: string;
 }
 
 export const shopDebtsApi = {
-  // Get all shop debts
-  getAll: () => apiClient.get<ShopDebt[]>("/shop-debts"),
-
-  // Get single debt
-  getOne: (id: string) => apiClient.get<ShopDebt>(`/shop-debts/${id}`),
-
   // Create debt
-  create: (data: CreateShopDebtData) =>
-    apiClient.post<ShopDebt>("/shop-debts", data),
+  createDebt: (data: CreateShopDebtData) =>
+    apiClient.post<ShopDebt>("/shop-debts/debt", data),
 
-  // Update debt
-  update: (id: string, data: UpdateShopDebtData) =>
-    apiClient.patch<ShopDebt>(`/shop-debts/${id}`, data),
-
-  // Delete debt
-  delete: (id: string) => apiClient.delete(`/shop-debts/${id}`),
-
-  // Pay debt
-  pay: (id: string, paidDate?: string) => {
-    const url = paidDate
-      ? `/shop-debts/${id}/pay?paidDate=${paidDate}`
-      : `/shop-debts/${id}/pay`;
-    return apiClient.post<ShopDebt>(url);
-  },
-
-  // Get by shop
-  getByShop: (shopName: string) =>
-    apiClient.get<ShopDebt[]>(`/shop-debts/shop/${shopName}`),
-
-  // Get by date
-  getByDate: (date: string) =>
-    apiClient.get<ShopDebt[]>(`/shop-debts/date/${date}`),
-
-  // Get by month
-  getByMonth: (year: number, month: number) =>
-    apiClient.get<ShopDebt[]>(`/shop-debts/month/${year}/${month}`),
+  // Create payment
+  createPayment: (data: CreateShopPaymentData) =>
+    apiClient.post<ShopPayment>("/shop-debts/payment", data),
 
   // Get summary
   getSummary: () => apiClient.get("/shop-debts/summary"),
 
-  // Get monthly summary
-  getMonthlySummary: (year?: number, month?: number) => {
+  // Get monthly data (debts & payments)
+  getMonthlyData: (year?: number, month?: number) => {
     const params = new URLSearchParams();
     if (year) params.append("year", year.toString());
     if (month) params.append("month", month.toString());
     return apiClient.get(`/shop-debts/monthly?${params.toString()}`);
   },
 
-  // Get monthly report
-  getMonthlyReport: (year: number, month: number) =>
-    apiClient.get(`/shop-debts/monthly-report?year=${year}&month=${month}`),
+  // Update debt
+  updateDebt: (id: string, data: UpdateShopDebtData) =>
+    apiClient.patch<ShopDebt>(`/shop-debts/debt/${id}`, data),
+
+  // Update payment
+  updatePayment: (id: string, data: any) =>
+    apiClient.patch<ShopPayment>(`/shop-debts/payment/${id}`, data),
+
+  // Delete debt
+  deleteDebt: (id: string) => apiClient.delete(`/shop-debts/debt/${id}`),
+
+  // Delete payment
+  deletePayment: (id: string) => apiClient.delete(`/shop-debts/payment/${id}`),
 };

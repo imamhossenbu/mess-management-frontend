@@ -104,12 +104,15 @@ export const MEMBER_NAV: NavGroup[] = [
       { icon: Users, label: "Members", href: "/users" },
       { icon: Utensils, label: "Meals", href: "/meals" },
       { icon: ShoppingBag, label: "Bazar", href: "/marketings" },
+      { icon: Package, label: "Inventory", href: "/inventory" },
     ],
   },
   {
     label: "My Financials",
     items: [
       { icon: CreditCard, label: "Payments", href: "/payments" },
+      { icon: FileText, label: "Utility Bills", href: "/utility-bills" },
+      { icon: Store, label: "Shop Debts", href: "/shop-debts" },
       { icon: Calendar, label: "Monthly Summary", href: "/monthly-summary" },
     ],
   },
