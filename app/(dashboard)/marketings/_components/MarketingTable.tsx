@@ -19,6 +19,7 @@ import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal";
 interface MarketingTableProps {
   data: any;
   canEdit: boolean;
+  currentUserId?: string;
   onDelete: (id: string) => Promise<any>;
   onView: (item: any) => void;
   onEdit: (item: any) => void;
@@ -28,11 +29,15 @@ interface MarketingTableProps {
 export function MarketingTable({
   data,
   canEdit,
+  currentUserId,
   onDelete,
   onView,
   onEdit,
   isDeleting,
 }: MarketingTableProps) {
+  // Member can edit/delete their own entries
+  const canEditEntry = (item: any) =>
+    canEdit || (currentUserId && item.userId === currentUserId);
   const marketings = data?.marketings || [];
   const [deleteItem, setDeleteItem] = useState<any>(null);
 
@@ -192,7 +197,7 @@ export function MarketingTable({
                         <Eye className="w-4 h-4" />
                       </button>
 
-                      {canEdit && (
+                      {canEditEntry(item) && (
                         <button
                           onClick={() => onEdit(item)}
                           className="p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition"
@@ -202,7 +207,7 @@ export function MarketingTable({
                         </button>
                       )}
 
-                      {canEdit && (
+                      {canEditEntry(item) && (
                         <button
                           onClick={() => handleDeleteClick(item)}
                           disabled={isDeleting}

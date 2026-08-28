@@ -10,6 +10,8 @@ import {
   CreditCard,
   Calendar,
   UserCheck,
+  ShoppingBag,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -78,10 +80,19 @@ export default function MemberDashboard({ stats, user }: MemberDashboardProps) {
       iconBg: "bg-teal-100",
       iconColor: "text-teal-600",
     },
+    {
+      label: "Utility Share",
+      value: `৳ ${(safeStats.utilityShareThisMonth ?? 0).toLocaleString()}`,
+      description: "My shared utilities",
+      icon: FileText,
+      iconBg: "bg-amber-100",
+      iconColor: "text-amber-600",
+    },
   ];
 
   const quickActions = [
     { href: "/meals", label: "My Meals", icon: Utensils },
+    { href: "/marketings", label: "Bazar", icon: ShoppingBag },
     { href: "/payments", label: "My Payments", icon: CreditCard },
     { href: "/monthly-summary", label: "Monthly Summary", icon: Calendar },
     { href: "/profile", label: "My Profile", icon: UserCheck },
@@ -149,7 +160,7 @@ export default function MemberDashboard({ stats, user }: MemberDashboardProps) {
         <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
           This Month
         </h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {personalStats.map((stat, i) => (
             <StatCard key={i} {...stat} delay={i} />
           ))}

@@ -11,6 +11,7 @@ import {
   Calendar,
   Plus,
   TrendingUp,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -41,6 +42,9 @@ export default function AdminDashboard({ stats, user }: AdminDashboardProps) {
     dailyStats: null,
     monthlyStats: null,
   };
+
+  const activeCount = safeStats.activeMembers || safeStats.totalMembers || 1;
+  const utilityPerPerson = (safeStats.totalUtilityCostThisMonth ?? 0) / activeCount;
 
   const statCards = [
     {
@@ -75,6 +79,14 @@ export default function AdminDashboard({ stats, user }: AdminDashboardProps) {
       iconBg: "bg-indigo-100",
       iconColor: "text-indigo-600",
     },
+    {
+      label: "Utility Per Person",
+      value: `৳ ${Number(utilityPerPerson).toFixed(2)}`,
+      description: `Total: ৳${(safeStats.totalUtilityCostThisMonth ?? 0).toLocaleString()}`,
+      icon: FileText,
+      iconBg: "bg-teal-100",
+      iconColor: "text-teal-600",
+    },
   ];
 
   const quickActions = [
@@ -99,7 +111,7 @@ export default function AdminDashboard({ stats, user }: AdminDashboardProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {statCards.map((card, i) => (
           <StatCard key={i} {...card} delay={i} />
         ))}

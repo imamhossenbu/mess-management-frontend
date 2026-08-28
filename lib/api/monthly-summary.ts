@@ -60,4 +60,8 @@ export const monthlySummaryApi = {
 
   delete: (year: number, month: number) =>
     apiClient.delete(`/monthly-summary/month/${year}/${month}`),
+
+  // Alias for consistency
+  deleteByMonth: (year: number, month: number) =>
+    apiClient.delete(`/monthly-summary/month/${year}/${month}`),
 };

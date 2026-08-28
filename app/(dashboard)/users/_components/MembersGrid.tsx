@@ -14,6 +14,7 @@ export interface Member {
   balance: number;
   joinedDate: string;
   profileImage?: string;
+  isActive?: boolean;
 }
 
 interface MembersGridProps {
@@ -21,8 +22,10 @@ interface MembersGridProps {
   currentUserId?: string;
   isAdmin: boolean;
   isManager: boolean;
+  isMember?: boolean;
   onRoleChange: (userId: string, role: string) => void;
   onRemoveMember: (userId: string) => void;
+  onStatusToggle?: (userId: string, isActive: boolean) => void;
   onRefetch: () => void;
   isRemoving?: boolean;
 }
@@ -32,8 +35,10 @@ export function MembersGrid({
   currentUserId,
   isAdmin,
   isManager,
+  isMember = false,
   onRoleChange,
   onRemoveMember,
+  onStatusToggle,
   onRefetch,
   isRemoving = false,
 }: MembersGridProps) {
@@ -43,7 +48,7 @@ export function MembersGrid({
         <Users className="w-12 h-12 text-slate-300 mb-3" />
         <p className="text-slate-500 font-medium">No members found</p>
         <p className="text-sm text-slate-400 mt-1">
-          Add members to get started
+          {isMember ? "No members in your mess yet" : "Add members to get started"}
         </p>
       </div>
     );
@@ -58,8 +63,10 @@ export function MembersGrid({
           isCurrentUser={member.userId === currentUserId}
           isAdmin={isAdmin}
           isManager={isManager}
+          isMember={isMember}
           onRoleChange={onRoleChange}
           onRemove={onRemoveMember}
+          onStatusToggle={onStatusToggle}
           isRemoving={isRemoving}
         />
       ))}

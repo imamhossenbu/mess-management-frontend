@@ -9,7 +9,7 @@ import {
   AdminStats,
   MemberStats,
   DailyStats,
-  MonthlySummary,
+  DashboardMonthlySummary,
 } from "@/lib/api/dashboard";
 import { useAuth } from "./useAuth";
 
@@ -18,10 +18,6 @@ type DashboardData = AdminDashboardData | MemberDashboardData;
 export function useDashboardData() {
   const { user, isAdmin, isManager, accessToken } = useAuth();
   const isAdminRole = isAdmin || isManager;
-
-  console.log("📊 useDashboardData - Token exists:", !!accessToken);
-  console.log("📊 useDashboardData - User:", user?.name);
-  console.log("📊 useDashboardData - isAdminRole:", isAdminRole);
 
   return useQuery<DashboardData>({
     queryKey: ["dashboard", user?.role],
@@ -47,7 +43,7 @@ export function useDashboardData() {
         }
 
         // Fetch monthly stats (optional)
-        let monthlyStats: MonthlySummary | null = null;
+        let monthlyStats: DashboardMonthlySummary | null = null;
         try {
           const monthlyResponse = await dashboardApi.getMonthly();
           monthlyStats = monthlyResponse.data;

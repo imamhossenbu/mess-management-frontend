@@ -39,6 +39,7 @@ export function useUsers() {
         balance: user.balance || 0,
         joinedDate: user.joinedDate || user.createdAt,
         profileImage: user.profileImage,
+        isActive: user.isActive !== false, // default true
       }));
     },
     staleTime: 5 * 60 * 1000,
@@ -98,6 +99,46 @@ export function useUsers() {
     },
   });
 
+  const updateMemberStatus = useMutation({
+    mutationFn: async ({
+      userId,
+      isActive,
+    }: {
+      userId: string;
+      isActive: boolean;
+    }) => {
+      const response = await usersApi.update(userId, { isActive });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Member status updated!");
+    },
+    onError: (error: any) => {
+      const message =
+        error.response?.data?.message || "Failed to update status";
+      toast.error(message);
+      throw error;
+    },
+  });
+
+  const deactivateMember = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await usersApi.deactivate(userId);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Member deactivated!");
+    },
+    onError: (error: any) => {
+      const message =
+        error.response?.data?.message || "Failed to deactivate member";
+      toast.error(message);
+      throw error;
+    },
+  });
+
   return {
     members,
     isLoading,
@@ -106,6 +147,8 @@ export function useUsers() {
     addMember,
     removeMember,
     updateMemberRole,
+    updateMemberStatus,
+    deactivateMember,
     isRemoving: removeMember.isPending,
   };
 }

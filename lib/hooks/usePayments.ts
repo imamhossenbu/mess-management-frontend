@@ -20,6 +20,19 @@ export function usePayments() {
   });
 }
 
+// Get payments by month
+export function usePaymentsByMonth(year: number, month: number) {
+  return useQuery({
+    queryKey: ["payments", "month", year, month],
+    queryFn: async () => {
+      const res = await paymentsApi.getByMonth(year, month);
+      return res.data;
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+
 // Get single payment
 export function usePayment(id: string) {
   return useQuery({

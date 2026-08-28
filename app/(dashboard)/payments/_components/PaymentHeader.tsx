@@ -2,30 +2,51 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { MonthSelector } from "../../marketings/_components/MonthSelector";
 
 interface PaymentHeaderProps {
-    onAddClick: () => void;
-    canEdit: boolean;
+  onAddClick: () => void;
+  canEdit: boolean;
+  selectedYear: number;
+  selectedMonth: number;
+  setSelectedYear: (year: number) => void;
+  setSelectedMonth: (month: number) => void;
 }
 
-export function PaymentHeader({ onAddClick, canEdit }: PaymentHeaderProps) {
-    return (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-900">Member Deposits</h1>
-                <p className="text-slate-500 text-sm mt-1">
-                    Log deposits, track user cash ledger, and audit overall finances.
-                </p>
-            </div>
+export function PaymentHeader({ 
+  onAddClick, 
+  canEdit,
+  selectedYear,
+  selectedMonth,
+  setSelectedYear,
+  setSelectedMonth,
+}: PaymentHeaderProps) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Member Deposits</h1>
+        <p className="text-slate-500 text-sm mt-1">
+          Log deposits, track user cash ledger, and audit overall finances.
+        </p>
+      </div>
 
-            {canEdit && (
-                <button
-                    onClick={onAddClick}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-semibold shadow-sm hover:shadow transition cursor-pointer"
-                >
-                    <Plus className="w-4 h-4" /> Record Deposit
-                </button>
-            )}
-        </div>
-    );
-}
+      <div className="flex items-center gap-3">
+        <MonthSelector
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          setSelectedYear={setSelectedYear}
+          setSelectedMonth={setSelectedMonth}
+        />
+
+        {canEdit && (
+          <button
+            onClick={onAddClick}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-semibold shadow-sm hover:shadow transition cursor-pointer"
+          >
+            <Plus className="w-4 h-4" /> Record Deposit
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

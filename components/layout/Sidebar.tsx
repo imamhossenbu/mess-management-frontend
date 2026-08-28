@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
-type NavItem = { icon: React.ElementType; label: string; href: string };
+type NavItem = { icon: React.ElementType; label: string; href: string; badgeKey?: string };
 type NavGroup = { label: string; items: NavItem[] };
 
 // ✅ Updated NAV - Users added for all roles
@@ -56,7 +56,9 @@ const ADMIN_NAV: NavGroup[] = [
   },
   {
     label: "Account",
-    items: [{ icon: User, label: "Profile", href: "/profile" }],
+    items: [
+      { icon: User, label: "Profile", href: "/profile" },
+    ],
   },
 ];
 
@@ -68,6 +70,7 @@ const MANAGER_NAV: NavGroup[] = [
   {
     label: "Operations",
     items: [
+      { icon: Users, label: "Members", href: "/users" },
       { icon: Utensils, label: "Meals", href: "/meals" },
       { icon: ShoppingBag, label: "Bazar", href: "/marketings" },
       { icon: Package, label: "Inventory", href: "/inventory" },
@@ -84,7 +87,9 @@ const MANAGER_NAV: NavGroup[] = [
   },
   {
     label: "Account",
-    items: [{ icon: User, label: "Profile", href: "/profile" }],
+    items: [
+      { icon: User, label: "Profile", href: "/profile" },
+    ],
   },
 ];
 
@@ -96,7 +101,7 @@ const MEMBER_NAV: NavGroup[] = [
   {
     label: "My Mess",
     items: [
-      { icon: Users, label: "Members", href: "/users" }, // ✅ Added Users
+      { icon: Users, label: "Members", href: "/users" },
       { icon: Utensils, label: "Meals", href: "/meals" },
       { icon: ShoppingBag, label: "Bazar", href: "/marketings" },
       { icon: CreditCard, label: "Payments", href: "/payments" },
@@ -105,7 +110,9 @@ const MEMBER_NAV: NavGroup[] = [
   },
   {
     label: "Account",
-    items: [{ icon: User, label: "Profile", href: "/profile" }],
+    items: [
+      { icon: User, label: "Profile", href: "/profile" },
+    ],
   },
 ];
 
@@ -171,6 +178,7 @@ export const Sidebar = () => {
     ROLE_BRAND[role as keyof typeof ROLE_BRAND] ?? ROLE_BRAND.MEMBER;
   const navGroups = getNavGroups(role);
   const BrandIcon = brand.icon;
+
 
   const initials =
     user?.name
@@ -279,10 +287,12 @@ export const Sidebar = () => {
                         : "text-slate-400 hover:text-white hover:bg-white/[0.07]"
                     }`}
                   >
-                    <Icon
-                      size={16}
-                      className={`shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}
-                    />
+                    <div className="relative shrink-0">
+                      <Icon
+                        size={16}
+                        className={`${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}
+                      />
+                    </div>
                     <AnimatePresence initial={false}>
                       {!collapsed && (
                         <motion.span

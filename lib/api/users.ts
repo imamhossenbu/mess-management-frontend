@@ -39,6 +39,22 @@ export const usersApi = {
     },
   ) => apiClient.patch<User>(`/users/manage/${id}`, data),
 
+  // Update own profile
+  updateProfile: (data: { name?: string; phone?: string; email?: string }) =>
+    apiClient.patch<User>("/users/profile", data),
+
+  // Upload profile image
+  uploadProfileImage: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post<{ profileImage: string }>("/users/profile/image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // Remove profile image
+  removeProfileImage: () => apiClient.delete("/users/profile/image"),
+
   // ✅ Soft delete (deactivate)
   deactivate: (id: string) => apiClient.delete(`/users/${id}`),
 
