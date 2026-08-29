@@ -670,7 +670,7 @@ function DueAdvanceCard({ userSummaries, type }: { userSummaries: any[]; type: "
             <div key={u.userId} className="flex items-center justify-between">
               <span className="text-xs font-medium text-slate-700">{u.userName}</span>
               <span className={`text-xs font-bold ${isDue ? "text-rose-600" : "text-emerald-600"}`}>
-                {isDue ? "-" : "+"} ৳{Math.abs(Number(u.currentDue)).toLocaleString()}
+                ৳{Math.abs(Number(u.currentDue)).toLocaleString()}
               </span>
             </div>
           ))}
