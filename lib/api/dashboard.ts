@@ -27,6 +27,7 @@ export interface AdminStats extends BaseStats {
   };
   mealsLunch?: number;
   mealsDinner?: number;
+  myStats?: MemberStats;
 }
 
 export interface MemberStats {
