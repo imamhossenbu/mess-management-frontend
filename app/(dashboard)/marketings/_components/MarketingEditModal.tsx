@@ -41,9 +41,6 @@ interface MarketingEditModalProps {
 interface FormItem {
   id?: string;
   itemName: string;
-  quantity: number;
-  unit: string;
-  price: number;
   totalPrice: number;
   note?: string;
 }
@@ -59,7 +56,6 @@ export function MarketingEditModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isImageMode, setIsImageMode] = useState(false);
   const [imageRemoved, setImageRemoved] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -73,10 +69,6 @@ export function MarketingEditModal({
   useEffect(() => {
     if (data) {
       const hasImage = data.imageUrl || false;
-      const allSingleItems = data.items?.every(
-        (item: any) => item.quantity === 1 && item.unit === "PIECE",
-      );
-      setIsImageMode(hasImage || allSingleItems);
       setImageRemoved(false);
       setSelectedImage(null);
       setImagePreview(null);
@@ -89,17 +81,11 @@ export function MarketingEditModal({
         items: data.items?.map((item: any) => ({
           id: item.id,
           itemName: item.itemName || "",
-          quantity: item.quantity || (hasImage ? 1 : 0),
-          unit: item.unit || (hasImage ? "PIECE" : "KG"),
-          price: item.price || 0,
           totalPrice: item.totalPrice || 0,
           note: item.note || "",
         })) || [
           {
             itemName: "",
-            quantity: 1,
-            unit: "PIECE",
-            price: 0,
             totalPrice: 0,
             note: "",
           },
@@ -135,7 +121,6 @@ export function MarketingEditModal({
       };
       reader.readAsDataURL(file);
 
-      setIsImageMode(true);
       setImageRemoved(false);
     }
   };
@@ -156,13 +141,6 @@ export function MarketingEditModal({
   ) => {
     const newItems = [...formData.items];
     newItems[index] = { ...newItems[index], [field]: value };
-
-    if (field === "quantity" || field === "price") {
-      const quantity = field === "quantity" ? value : newItems[index].quantity;
-      const price = field === "price" ? value : newItems[index].price;
-      newItems[index].totalPrice = (quantity || 0) * (price || 0);
-    }
-
     setFormData({ ...formData, items: newItems });
   };
 
@@ -173,9 +151,6 @@ export function MarketingEditModal({
         ...formData.items,
         {
           itemName: "",
-          quantity: isImageMode ? 1 : 0,
-          unit: isImageMode ? "PIECE" : "KG",
-          price: 0,
           totalPrice: 0,
           note: "",
         },
@@ -196,20 +171,16 @@ export function MarketingEditModal({
     e.preventDefault();
 
     const invalidItems = formData.items.filter(
-      (item) => !item.itemName.trim() || item.price <= 0,
+      (item) => !item.itemName.trim() || item.totalPrice <= 0,
     );
     if (invalidItems.length > 0) {
-      toast.error("Please fill in all item names and prices");
+      toast.error("Please fill in all item names and amounts");
       return;
     }
 
     const itemsArray = formData.items.map((item) => ({
       itemName: item.itemName.trim(),
-      quantity: isImageMode ? 1 : Number(item.quantity || 1),
-      unit: isImageMode ? "PIECE" : item.unit || "KG",
-      price: Number(item.price),
-      totalPrice:
-        Number(item.price) * (isImageMode ? 1 : Number(item.quantity || 1)),
+      totalPrice: Number(item.totalPrice),
       note: item.note || undefined,
     }));
 
@@ -307,50 +278,20 @@ export function MarketingEditModal({
                   <div className="p-4 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 ${isImageMode ? "bg-primary-100" : "bg-slate-100"} rounded-xl`}
-                        >
-                          {isImageMode ? (
-                            <Camera className="w-5 h-5 text-primary-500" />
-                          ) : (
-                            <ImageIcon className="w-5 h-5 text-slate-500" />
-                          )}
+                        <div className="p-2 bg-slate-100 rounded-xl">
+                          <ImageIcon className="w-5 h-5 text-slate-500" />
                         </div>
                         <div>
                           <p className="text-sm font-medium text-slate-700">
-                            {isImageMode ? "📷 Image Mode" : "Update Image"}
+                            Update Image
                           </p>
                           <p className="text-xs text-slate-400">
-                            {isImageMode
-                              ? "Only Name & Price needed"
-                              : "JPEG, PNG, GIF, WEBP (Max 10MB)"}
+                            JPEG, PNG, GIF, WEBP (Max 10MB)
                           </p>
                         </div>
                       </div>
 
-                      {showExistingActions ? (
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setIsImageMode(!isImageMode)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                              isImageMode
-                                ? "bg-primary-100 text-primary-700 border border-primary-200"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            }`}
-                          >
-                            {isImageMode ? "Image Mode ON" : "Switch Mode"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={removeImage}
-                            className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition"
-                            title="Remove image"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        </div>
-                      ) : imagePreview ? (
+                      {imagePreview || (data?.imageUrl && !imageRemoved) ? (
                         <button
                           type="button"
                           onClick={removeImage}
@@ -466,12 +407,7 @@ export function MarketingEditModal({
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Items{" "}
-                        {isImageMode && (
-                          <span className="text-primary-500">
-                            (Only Name & Price)
-                          </span>
-                        )}
+                        Items
                       </label>
                       <button
                         type="button"
@@ -485,13 +421,9 @@ export function MarketingEditModal({
                     {formData.items.map((item, index) => (
                       <div
                         key={index}
-                        className={`grid grid-cols-1 ${isImageMode ? "sm:grid-cols-3" : "sm:grid-cols-6"} gap-2 p-3 bg-slate-50 rounded-xl`}
+                        className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-slate-50 rounded-xl"
                       >
-                        <div
-                          className={
-                            isImageMode ? "sm:col-span-1" : "sm:col-span-2"
-                          }
-                        >
+                        <div className="sm:col-span-2">
                           <input
                             type="text"
                             placeholder="Item name"
@@ -508,56 +440,15 @@ export function MarketingEditModal({
                           />
                         </div>
 
-                        {!isImageMode && (
-                          <>
-                            <div>
-                              <input
-                                type="number"
-                                placeholder="Qty"
-                                value={item.quantity || ""}
-                                onChange={(e) =>
-                                  handleItemChange(
-                                    index,
-                                    "quantity",
-                                    parseFloat(e.target.value) || 0,
-                                  )
-                                }
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                                min="0.01"
-                                step="0.01"
-                              />
-                            </div>
-                            <div>
-                              <select
-                                value={item.unit}
-                                onChange={(e) =>
-                                  handleItemChange(
-                                    index,
-                                    "unit",
-                                    e.target.value,
-                                  )
-                                }
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                              >
-                                {UNITS.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </>
-                        )}
-
-                        <div>
+                        <div className="flex items-center gap-2">
                           <input
                             type="number"
-                            placeholder="Price"
-                            value={item.price || ""}
+                            placeholder="Amount (TK)"
+                            value={item.totalPrice || ""}
                             onChange={(e) =>
                               handleItemChange(
                                 index,
-                                "price",
+                                "totalPrice",
                                 parseFloat(e.target.value) || 0,
                               )
                             }
@@ -566,25 +457,11 @@ export function MarketingEditModal({
                             min="0"
                             step="0.01"
                           />
-                        </div>
 
-                        {!isImageMode && (
-                          <div>
-                            <input
-                              type="text"
-                              placeholder="Total"
-                              value={item.totalPrice.toFixed(2)}
-                              className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700"
-                              readOnly
-                            />
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-1">
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition"
+                            className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition shrink-0"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -623,9 +500,7 @@ export function MarketingEditModal({
                         ৳{" "}
                         {formData.items
                           .reduce(
-                            (sum, item) =>
-                              sum +
-                              (isImageMode ? item.price : item.totalPrice),
+                            (sum, item) => sum + item.totalPrice,
                             0,
                           )
                           .toFixed(2)}

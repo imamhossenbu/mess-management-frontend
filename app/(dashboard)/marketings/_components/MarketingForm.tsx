@@ -37,7 +37,6 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isImageMode, setIsImageMode] = useState(false);
 
   const [formData, setFormData] = useState({
     date: format(new Date(), "yyyy-MM-dd"),
@@ -47,9 +46,6 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
     items: [
       {
         itemName: "",
-        quantity: 1,
-        unit: "KG",
-        price: 0,
         totalPrice: 0,
         note: "",
       } as FormItem,
@@ -90,16 +86,6 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-
-      setIsImageMode(true);
-      setFormData(prev => ({
-        ...prev,
-        items: prev.items.map(item => ({
-          ...item,
-          quantity: 1,
-          unit: "PIECE"
-        }))
-      }));
     }
   };
 
@@ -109,31 +95,11 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    setIsImageMode(false);
-  };
-
-  const toggleMode = () => {
-    setIsImageMode(!isImageMode);
-    setFormData(prev => ({
-      ...prev,
-      items: prev.items.map(item => ({
-        ...item,
-        quantity: isImageMode ? 0 : 1,
-        unit: isImageMode ? "KG" : "PIECE"
-      }))
-    }));
   };
 
   const handleItemChange = (index: number, field: keyof FormItem, value: any) => {
     const newItems = [...formData.items];
     newItems[index] = { ...newItems[index], [field]: value };
-
-    if (field === "quantity" || field === "price") {
-      const quantity = field === "quantity" ? value : newItems[index].quantity;
-      const price = field === "price" ? value : newItems[index].price;
-      newItems[index].totalPrice = (quantity || 0) * (price || 0);
-    }
-
     setFormData({ ...formData, items: newItems });
   };
 
@@ -144,12 +110,9 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
         ...formData.items,
         {
           itemName: "",
-          quantity: isImageMode ? 1 : 0,
-          unit: isImageMode ? "PIECE" : "KG",
-          price: 0,
           totalPrice: 0,
           note: ""
-        },
+        } as FormItem,
       ],
     });
   };
@@ -172,19 +135,16 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
     }
 
     const invalidItems = formData.items.filter(
-      (item) => !item.itemName.trim() || item.price <= 0
+      (item) => !item.itemName.trim() || item.totalPrice <= 0
     );
     if (invalidItems.length > 0) {
-      toast.error("Please fill in all item names and prices");
+      toast.error("Please fill in all item names and amounts");
       return;
     }
 
     const itemsArray = formData.items.map((item) => ({
       itemName: item.itemName.trim(),
-      quantity: isImageMode ? 1 : Number(item.quantity || 1),
-      unit: isImageMode ? "PIECE" : (item.unit || "KG"),
-      price: Number(item.price),
-      totalPrice: Number(item.price) * (isImageMode ? 1 : Number(item.quantity || 1)),
+      totalPrice: Number(item.totalPrice),
       note: item.note || undefined,
     }));
 
@@ -226,34 +186,21 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
         <div className="p-4 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`p-2 ${isImageMode ? 'bg-primary-100' : 'bg-slate-100'} rounded-xl`}>
-                {isImageMode ? <Camera className="w-5 h-5 text-primary-500" /> : <ImageIcon className="w-5 h-5 text-slate-500" />}
+              <div className="p-2 bg-slate-100 rounded-xl">
+                <ImageIcon className="w-5 h-5 text-slate-500" />
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-700">
-                  {isImageMode ? '📷 Image Mode (Only Name & Price)' : 'Upload Bazar Image'}
+                  Upload Bazar Image
                 </p>
                 <p className="text-xs text-slate-400">
-                  {isImageMode
-                    ? 'Add multiple items with just name and price'
-                    : 'JPEG, PNG, GIF, WEBP (Max 10MB)'
-                  }
+                  JPEG, PNG, GIF, WEBP (Max 10MB)
                 </p>
               </div>
             </div>
 
             {!imagePreview ? (
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={toggleMode}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${isImageMode
-                      ? 'bg-primary-100 text-primary-700 border border-primary-200'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                >
-                  {isImageMode ? 'Image Mode ON' : 'Switch to Image Mode'}
-                </button>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -367,7 +314,7 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Items {isImageMode && <span className="text-primary-500">(Only Name & Price)</span>}
+              Items
             </label>
             <button
               type="button"
@@ -379,8 +326,8 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
           </div>
 
           {formData.items.map((item, index) => (
-            <div key={index} className={`grid grid-cols-1 ${isImageMode ? 'sm:grid-cols-3' : 'sm:grid-cols-6'} gap-2 p-3 bg-slate-50 rounded-xl`}>
-              <div className={isImageMode ? 'sm:col-span-1' : 'sm:col-span-2'}>
+            <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-slate-50 rounded-xl">
+              <div className="sm:col-span-2">
                 <input
                   type="text"
                   placeholder="Item name"
@@ -391,63 +338,22 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
                 />
               </div>
 
-              {!isImageMode && (
-                <>
-                  <div>
-                    <input
-                      type="number"
-                      placeholder="Qty"
-                      value={item.quantity || ""}
-                      onChange={(e) => handleItemChange(index, "quantity", parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                      min="0.01"
-                      step="0.01"
-                    />
-                  </div>
-                  <div>
-                    <select
-                      value={item.unit}
-                      onChange={(e) => handleItemChange(index, "unit", e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                    >
-                      {UNITS.map((unit) => (
-                        <option key={unit} value={unit}>{unit}</option>
-                      ))}
-                    </select>
-                  </div>
-                </>
-              )}
-
-              <div>
+              <div className="flex items-center gap-2">
                 <input
                   type="number"
-                  placeholder="Price"
-                  value={item.price || ""}
-                  onChange={(e) => handleItemChange(index, "price", parseFloat(e.target.value) || 0)}
+                  placeholder="Amount (TK)"
+                  value={item.totalPrice || ""}
+                  onChange={(e) => handleItemChange(index, "totalPrice", parseFloat(e.target.value) || 0)}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
                   required
                   min="0"
                   step="0.01"
                 />
-              </div>
-
-              {!isImageMode && (
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Total"
-                    value={item.totalPrice.toFixed(2)}
-                    className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700"
-                    readOnly
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center gap-1">
+                
                 <button
                   type="button"
                   onClick={() => removeItem(index)}
-                  className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition"
+                  className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition shrink-0"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -479,7 +385,7 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
               <p className="text-sm text-slate-500">{formData.items.length} items</p>
             </div>
             <p className="text-2xl font-bold text-primary-700">
-              ৳ {formData.items.reduce((sum, item) => sum + (isImageMode ? item.price : item.totalPrice), 0).toFixed(2)}
+              ৳ {formData.items.reduce((sum, item) => sum + item.totalPrice, 0).toFixed(2)}
             </p>
           </div>
         </div>

@@ -4,9 +4,9 @@ import { apiClient } from "./client";
 export interface MarketingItem {
   id: string;
   itemName: string;
-  quantity: number;
-  unit: string;
-  price: number;
+  quantity?: number;
+  unit?: string;
+  price?: number;
   totalPrice: number;
   note?: string;
 }
@@ -28,9 +28,9 @@ export interface Marketing {
 
 export interface CreateMarketingItem {
   itemName: string;
-  quantity: number;
-  unit: string;
-  price: number;
+  quantity?: number;
+  unit?: string;
+  price?: number;
   totalPrice: number;
   note?: string;
 }
@@ -69,10 +69,7 @@ export const marketingsApi = {
     const items = Array.isArray(data.items) ? data.items : [];
     const sanitizedItems = items.map((item) => ({
       itemName: item.itemName || "",
-      quantity: item.quantity || 1,
-      unit: item.unit || "PIECE",
-      price: item.price || 0,
-      totalPrice: item.totalPrice || (item.price || 0) * (item.quantity || 1),
+      totalPrice: item.totalPrice || 0,
       note: item.note || undefined,
     }));
     const itemsJson = JSON.stringify(sanitizedItems);
@@ -100,10 +97,7 @@ export const marketingsApi = {
       const items = Array.isArray(data.items) ? data.items : [];
       const sanitizedItems = items.map((item) => ({
         itemName: item.itemName || "",
-        quantity: item.quantity || 1,
-        unit: item.unit || "PIECE",
-        price: item.price || 0,
-        totalPrice: item.totalPrice || (item.price || 0) * (item.quantity || 1),
+        totalPrice: item.totalPrice || 0,
         note: item.note || undefined,
       }));
       const itemsJson = JSON.stringify(sanitizedItems);

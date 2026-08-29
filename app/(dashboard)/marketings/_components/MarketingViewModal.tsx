@@ -214,9 +214,6 @@ export function MarketingViewModal({
                               <p className="text-base font-medium text-slate-800">
                                 {item.itemName}
                               </p>
-                              <p className="text-xs text-slate-400">
-                                {item.quantity} {item.unit} × ৳{item.price}
-                              </p>
                             </div>
                             <p className="text-base font-bold text-slate-800">
                               ৳{item.totalPrice.toFixed(2)}
