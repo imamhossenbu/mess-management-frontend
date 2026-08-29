@@ -114,9 +114,21 @@ export function isMemberDashboardData(
 }
 
 export const dashboardApi = {
-  getAdmin: () => apiClient.get<AdminStats>("/dashboard/admin"),
+  getAdmin: (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append("year", year.toString());
+    if (month) params.append("month", month.toString());
+    const queryString = params.toString();
+    return apiClient.get<AdminStats>(`/dashboard/admin${queryString ? `?${queryString}` : ""}`);
+  },
 
-  getMember: () => apiClient.get<MemberStats>("/dashboard/member"),
+  getMember: (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append("year", year.toString());
+    if (month) params.append("month", month.toString());
+    const queryString = params.toString();
+    return apiClient.get<MemberStats>(`/dashboard/member${queryString ? `?${queryString}` : ""}`);
+  },
 
   getDaily: (date?: string) => {
     const url = date ? `/dashboard/daily?date=${date}` : "/dashboard/daily";

@@ -7,7 +7,8 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 import { AdminDashboardData, MemberDashboardData } from "@/lib/api/dashboard";
 import { useDashboard } from "@/lib/hooks/useDashboard";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
+import { MonthSelector } from "../../marketings/_components/MonthSelector";
 
 const AdminDashboard = dynamic(
   () => import("./role-dashboards/AdminDashboard"),
@@ -50,12 +51,15 @@ interface Props {
 export const DashboardWrapper = memo(
   function DashboardWrapper({ user, role }: Props) {
     const { isLoading: authLoading } = useAuth();
+    const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+    const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+
     const {
       data: stats,
       isLoading: isDashboardLoading,
       error,
       refetch,
-    } = useDashboard();
+    } = useDashboard(selectedYear, selectedMonth);
 
     const isLoading = authLoading || isDashboardLoading;
 
@@ -110,7 +114,19 @@ export const DashboardWrapper = memo(
       }
     }, [isLoading, error, stats, role, user, refetch]);
 
-    return content;
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-end">
+          <MonthSelector 
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+            setSelectedYear={setSelectedYear}
+            setSelectedMonth={setSelectedMonth}
+          />
+        </div>
+        {content}
+      </div>
+    );
   },
   (prevProps, nextProps) => {
     // ✅ Only re-render if user or role changes

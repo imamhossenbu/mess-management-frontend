@@ -6,54 +6,31 @@ import { dashboardApi } from "@/lib/api/dashboard";
 import { useAuth } from "./useAuth";
 import { useMemo, useRef } from "react";
 
-// ✅ Singleton cache
-let cachedData: any = null;
-let fetchPromise: Promise<any> | null = null;
-
-export function useDashboard() {
+export function useDashboard(year?: number, month?: number) {
   const { user, isAdmin, isManager, accessToken, isAuthenticated } = useAuth();
   const isAdminRole = isAdmin || isManager;
   const renderCount = useRef(0);
   renderCount.current += 1;
 
-  // ✅ Stable query key - user ID only
+  // ✅ Stable query key - user ID and month/year
   const queryKey = useMemo(() => {
-    return ["dashboard", user?.id || "guest"];
-  }, [user?.id]);
+    return ["dashboard", user?.id || "guest", year, month];
+  }, [user?.id, year, month]);
 
   return useQuery({
     queryKey: queryKey,
     queryFn: async () => {
-      // ✅ Return cached data immediately
-      if (cachedData) {
-        console.log(`📦 [${renderCount.current}] Using cached data`);
-        return cachedData;
+      console.log(`🌐 [${renderCount.current}] Fetching fresh data for ${year}-${month}`);
+      try {
+        const response = isAdminRole
+          ? await dashboardApi.getAdmin(year, month)
+          : await dashboardApi.getMember(year, month);
+        console.log(`✅ [${renderCount.current}] Data fetched`);
+        return response.data;
+      } catch (error) {
+        console.error(`❌ [${renderCount.current}] Fetch failed:`, error);
+        throw error;
       }
-
-      // ✅ Prevent duplicate requests
-      if (fetchPromise) {
-        console.log(`⏳ [${renderCount.current}] Waiting for existing request`);
-        return fetchPromise;
-      }
-
-      console.log(`🌐 [${renderCount.current}] Fetching fresh data`);
-      fetchPromise = (async () => {
-        try {
-          const response = isAdminRole
-            ? await dashboardApi.getAdmin()
-            : await dashboardApi.getMember();
-          cachedData = response.data;
-          console.log(`✅ [${renderCount.current}] Data fetched`);
-          return cachedData;
-        } catch (error) {
-          console.error(`❌ [${renderCount.current}] Fetch failed:`, error);
-          throw error;
-        } finally {
-          fetchPromise = null;
-        }
-      })();
-
-      return fetchPromise;
     },
     enabled: isAuthenticated && !!user && !!accessToken,
     staleTime: 30 * 60 * 1000, // 30 minutes

@@ -38,7 +38,7 @@ export function PaymentsClient() {
   const canEdit = isAdmin || isManager;
 
   const { data: transactions, isLoading: loadingTx, refetch } = usePaymentsByMonth(selectedYear, selectedMonth);
-  const { data: balances, isLoading: loadingBal } = useAllUserBalances();
+  const { data: balances, isLoading: loadingBal } = useAllUserBalances(selectedYear, selectedMonth);
   const deletePayment = useDeletePayment();
 
   // Member's monthly parameters

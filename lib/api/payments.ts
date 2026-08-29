@@ -56,7 +56,13 @@ export const paymentsApi = {
   },
   getUserBalance: (userId: string) =>
     apiClient.get<UserBalance>(`/payments/user/${userId}/balance`),
-  getAllBalances: () => apiClient.get<UserBalance[]>("/payments/balances"),
+  getAllBalances: (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append("year", year.toString());
+    if (month) params.append("month", month.toString());
+    const queryString = params.toString();
+    return apiClient.get<UserBalance[]>(`/dashboard/member-balances${queryString ? `?${queryString}` : ""}`);
+  },
   getByDate: (date: string) =>
     apiClient.get<Payment[]>(`/payments/date/${date}`),
   getByMonth: (year: number, month: number) =>

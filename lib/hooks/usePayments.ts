@@ -77,11 +77,11 @@ export function useUserBalance(userId: string) {
 }
 
 // Get all user balances
-export function useAllUserBalances() {
+export function useAllUserBalances(year?: number, month?: number) {
   return useQuery({
-    queryKey: ["payments", "all-balances"],
+    queryKey: ["payments", "all-balances", year, month],
     queryFn: async () => {
-      const res = await paymentsApi.getAllBalances();
+      const res = await paymentsApi.getAllBalances(year, month);
       return res.data;
     },
     staleTime: 2 * 60 * 1000,
