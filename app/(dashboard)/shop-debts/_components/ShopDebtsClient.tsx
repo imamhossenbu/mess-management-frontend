@@ -22,7 +22,7 @@ type FormType = "DEBT" | "PAYMENT" | null;
 
 export function ShopDebtsClient() {
   const { user } = useAuth();
-  
+
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
 
@@ -30,15 +30,15 @@ export function ShopDebtsClient() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"DEBT" | "PAYMENT" | null>(null);
   const [deleteItemName, setDeleteItemName] = useState<string>("");
-  
+
   const [isAddDebtModalOpen, setIsAddDebtModalOpen] = useState(false);
   const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
-  
+
   const [editDebt, setEditDebt] = useState<any>(null);
   const [editPayment, setEditPayment] = useState<any>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const [filterDate, setFilterDate] = useState("");
 
   // Fetch global summary
@@ -55,9 +55,9 @@ export function ShopDebtsClient() {
     queryKey: ["shop-debts-monthly", selectedYear, selectedMonth, filterDate],
     queryFn: async () => {
       const res = await shopDebtsApi.getMonthlyData(
-        filterDate ? undefined : selectedYear, 
-        filterDate ? undefined : selectedMonth, 
-        filterDate || undefined, 
+        filterDate ? undefined : selectedYear,
+        filterDate ? undefined : selectedMonth,
+        filterDate || undefined,
         filterDate || undefined
       );
       return res.data;
@@ -109,7 +109,7 @@ export function ShopDebtsClient() {
     ...(monthlyData?.payments?.map((p: any) => ({ ...p, type: "PAYMENT" })) || []),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const ledger = allLedger.filter(item => 
+  const ledger = allLedger.filter(item =>
     item.shopName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (item.itemDetails && item.itemDetails.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (item.note && item.note.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -132,9 +132,9 @@ export function ShopDebtsClient() {
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <div className="flex gap-2 items-center bg-white border border-slate-200 rounded-xl px-2">
             <span className="text-xs font-semibold text-slate-500">Date:</span>
-            <input 
-              type="date" 
-              value={filterDate} 
+            <input
+              type="date"
+              value={filterDate}
               onChange={e => setFilterDate(e.target.value)}
               className="px-2 py-1.5 text-xs focus:outline-none bg-transparent"
             />
@@ -143,8 +143,8 @@ export function ShopDebtsClient() {
             <MonthSelector
               selectedMonth={selectedMonth}
               selectedYear={selectedYear}
-              onMonthChange={setSelectedMonth}
-              onYearChange={setSelectedYear}
+              setSelectedMonth={setSelectedMonth}
+              setSelectedYear={setSelectedYear}
             />
           )}
           <div className="flex gap-2">
@@ -164,21 +164,21 @@ export function ShopDebtsClient() {
         </div>
       </div>
 
-      <AddShopDebtModal 
-        isOpen={isAddDebtModalOpen} 
+      <AddShopDebtModal
+        isOpen={isAddDebtModalOpen}
         onClose={() => {
           setIsAddDebtModalOpen(false);
           refetchSummary();
           refetchMonthly();
-        }} 
+        }}
       />
-      <AddShopPaymentModal 
-        isOpen={isAddPaymentModalOpen} 
+      <AddShopPaymentModal
+        isOpen={isAddPaymentModalOpen}
         onClose={() => {
           setIsAddPaymentModalOpen(false);
           refetchSummary();
           refetchMonthly();
-        }} 
+        }}
       />
 
       <EditShopDebtModal
@@ -257,9 +257,8 @@ export function ShopDebtsClient() {
                       <p className="text-[10px] text-slate-400">Total Paid: ৳{formatBanglaNumber(Number(shop.totalPaid))}</p>
                     </div>
                     <div className="text-right">
-                      <span className={`px-2 py-0.5 rounded-lg text-xs font-bold ${
-                        Number(shop.currentDue) > 0 ? "bg-rose-50 text-rose-500" : "bg-emerald-50 text-emerald-600"
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded-lg text-xs font-bold ${Number(shop.currentDue) > 0 ? "bg-rose-50 text-rose-500" : "bg-emerald-50 text-emerald-600"
+                        }`}>
                         ৳{formatBanglaNumber(Number(shop.currentDue))} {Number(shop.currentDue) > 0 ? "due" : "clear"}
                       </span>
                     </div>
@@ -315,16 +314,15 @@ export function ShopDebtsClient() {
                           </td>
                           <td className="py-3">
                             <div className="flex items-center gap-2">
-                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider ${
-                                item.type === "DEBT" ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
-                              }`}>
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider ${item.type === "DEBT" ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
+                                }`}>
                                 {item.type === "DEBT" ? "CREDIT BOUGHT" : "PAYMENT"}
                               </span>
                               <span className="font-semibold text-slate-800 text-sm">{item.shopName}</span>
                             </div>
                             {item.itemDetails && <span className="text-[11px] text-slate-500 block mt-0.5">{item.itemDetails}</span>}
                             {item.note && <span className="text-[10px] text-slate-400 block mt-0.5 italic">{item.note}</span>}
-                            
+
                             {/* WHO ADDED/PAID */}
                             <span className="text-[9px] font-medium text-slate-400 block mt-1 uppercase">
                               {item.type === "DEBT" ? "Logged by: " : "Paid by: "}
