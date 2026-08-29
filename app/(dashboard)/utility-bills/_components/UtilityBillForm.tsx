@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { useCreateUtilityBill, useUpdateUtilityBill } from "@/lib/hooks/useUtilityBills";
 import { useQuery } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api/users";
+import { parseBanglaNumber } from "@/lib/banglaParser";
 import type { BillType } from "@/lib/api/utility-bills";
 
 const BILL_TYPES: { value: BillType; label: string }[] = [
@@ -63,7 +64,8 @@ export function UtilityBillForm({ onSuccess, onCancel, editData }: UtilityBillFo
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+        const parsedAmount = parseBanglaNumber(amount);
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
             toast.error("Please enter a valid bill amount");
             return;
         }
@@ -73,7 +75,7 @@ export function UtilityBillForm({ onSuccess, onCancel, editData }: UtilityBillFo
         const data = {
             billType: billType,
             monthYear: billMonthYear,
-            amount: parseFloat(amount),
+            amount: parsedAmount,
             paidBy,
             note: note || undefined,
         };
@@ -143,13 +145,13 @@ export function UtilityBillForm({ onSuccess, onCancel, editData }: UtilityBillFo
                     <div>
                         <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Amount (৳)</label>
                         <input
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             placeholder="e.g. 500"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:opacity-50"
                             required
-                            min="1"
                             disabled={isSubmitting}
                         />
                     </div>

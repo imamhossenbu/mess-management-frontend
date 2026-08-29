@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { useCreatePayment } from "@/lib/hooks/usePayments";
 import { useQuery } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api/users";
+import { parseBanglaNumber } from "@/lib/banglaParser";
 
 interface PaymentFormProps {
     onSuccess: () => void;
@@ -44,7 +45,8 @@ export function PaymentForm({ onSuccess, onCancel }: PaymentFormProps) {
             return;
         }
 
-        if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+        const parsedAmount = parseBanglaNumber(amount);
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
             toast.error("Please enter a valid amount");
             return;
         }
@@ -52,7 +54,7 @@ export function PaymentForm({ onSuccess, onCancel }: PaymentFormProps) {
         createPayment.mutate(
             {
                 userId,
-                amount: parseFloat(amount),
+                amount: parsedAmount,
                 paymentDate,
                 paymentMethod,
                 note: note || undefined,
@@ -108,14 +110,13 @@ export function PaymentForm({ onSuccess, onCancel }: PaymentFormProps) {
                             Amount (৳) *
                         </label>
                         <input
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             placeholder="e.g. 2000"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:opacity-50"
                             required
-                            min="1"
-                            step="0.01"
                             disabled={isSubmitting}
                         />
                     </div>

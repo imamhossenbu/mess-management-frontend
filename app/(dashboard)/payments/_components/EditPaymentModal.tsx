@@ -9,6 +9,7 @@ import { X, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 import { useUpdatePayment } from "@/lib/hooks/usePayments";
+import { parseBanglaNumber } from "@/lib/banglaParser";
 
 interface EditPaymentModalProps {
     isOpen: boolean;
@@ -49,7 +50,8 @@ export function EditPaymentModal({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.amount || isNaN(Number(formData.amount)) || Number(formData.amount) <= 0) {
+        const parsedAmount = parseBanglaNumber(formData.amount);
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
             toast.error("Please enter a valid amount");
             return;
         }
@@ -58,7 +60,7 @@ export function EditPaymentModal({
             {
                 id: payment.id,
                 data: {
-                    amount: parseFloat(formData.amount),
+                    amount: parsedAmount,
                     paymentDate: formData.paymentDate,
                     paymentMethod: formData.paymentMethod as any,
                     note: formData.note || undefined,
@@ -134,7 +136,8 @@ export function EditPaymentModal({
                                             Amount (৳) *
                                         </label>
                                         <input
-                                            type="number"
+                                            type="text"
+                                            inputMode="decimal"
                                             placeholder="Enter amount"
                                             value={formData.amount}
                                             onChange={(e) =>
@@ -142,7 +145,6 @@ export function EditPaymentModal({
                                             }
                                             className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:opacity-50"
                                             required
-                                            min="1"
                                             disabled={isSubmitting}
                                         />
                                     </div>

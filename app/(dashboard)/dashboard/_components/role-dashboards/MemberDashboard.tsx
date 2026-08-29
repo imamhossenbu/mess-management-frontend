@@ -12,6 +12,7 @@ import {
   UserCheck,
   ShoppingBag,
   FileText,
+  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -60,7 +61,7 @@ export default function MemberDashboard({ stats, user }: MemberDashboardProps) {
       label: "Meal Rate",
       value: `৳ ${Number(safeStats.mealRate ?? 0).toFixed(2)}`,
       description: "Per meal cost",
-      icon: Percent,
+      icon: TrendingUp,
       iconBg: "bg-indigo-100",
       iconColor: "text-indigo-600",
     },

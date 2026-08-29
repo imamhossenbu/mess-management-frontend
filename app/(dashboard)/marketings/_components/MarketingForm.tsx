@@ -150,6 +150,7 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
       date: formData.date,
       shopName: formData.shopName || undefined,
       paymentType: formData.paymentType,
+      memberId: selectedUserId,
       note: formData.note || undefined,
       items: itemsArray,
       image: selectedImage || undefined,

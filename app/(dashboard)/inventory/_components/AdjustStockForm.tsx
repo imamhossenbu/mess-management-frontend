@@ -243,6 +243,7 @@ import { Package, Plus, Minus } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAddInventory, useRemoveInventory } from "@/lib/hooks/useInventory";
 import { useInventory } from "@/lib/hooks/useInventory";
+import { parseBanglaNumber } from "@/lib/banglaParser";
 
 interface AdjustStockFormProps {
   onSuccess: () => void;
@@ -273,15 +274,15 @@ export function AdjustStockForm({ onSuccess, canEdit }: AdjustStockFormProps) {
       return;
     }
 
-    if (!quantity || isNaN(Number(quantity)) || Number(quantity) <= 0) {
+    const parsedQuantity = parseBanglaNumber(quantity);
+    if (isNaN(parsedQuantity) || parsedQuantity <= 0) {
       toast.error("Please enter a valid positive quantity");
       return;
     }
 
-    const quantityNum = Number(quantity);
     const payload = {
       itemName: selectedItem,
-      quantity: quantityNum,
+      quantity: parsedQuantity,
       note: note || undefined,
     };
 
@@ -364,13 +365,13 @@ export function AdjustStockForm({ onSuccess, canEdit }: AdjustStockFormProps) {
             Quantity
           </label>
           <input
-            type="number"
+            type="text"
+            inputMode="decimal"
             placeholder="e.g. 10"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
             className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
             required
-            min="1"
           />
         </div>
 

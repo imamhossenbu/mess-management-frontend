@@ -11,11 +11,11 @@ export const useShopDebtSummary = () => {
   });
 };
 
-export const useShopDebtsMonthly = (year: number, month: number) => {
+export const useShopDebtsMonthly = (year: number, month: number, startDate?: string, endDate?: string) => {
   return useQuery({
-    queryKey: ["shop-debts-monthly", year, month],
+    queryKey: ["shop-debts-monthly", year, month, startDate, endDate],
     queryFn: async () => {
-      const { data } = await shopDebtsApi.getMonthlyData(year, month);
+      const { data } = await shopDebtsApi.getMonthlyData(year, month, startDate, endDate);
       return data;
     },
   });
@@ -55,6 +55,34 @@ export const useCreateShopPayment = () => {
     mutationFn: async (payload: any) => {
       const { data } = await shopDebtsApi.createPayment(payload);
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shop-debts-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["shop-debts-monthly"] });
+    },
+  });
+};
+
+export const useUpdateShopDebt = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const res = await shopDebtsApi.updateDebt(id, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shop-debts-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["shop-debts-monthly"] });
+    },
+  });
+};
+
+export const useUpdateShopPayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const res = await shopDebtsApi.updatePayment(id, data);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shop-debts-summary"] });

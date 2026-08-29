@@ -21,7 +21,8 @@ import {
   Printer,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal";
+import { parseBanglaNumber } from "@/lib/banglaParser";
 
 // ✅ Lazy-load heavy tabs — only loaded when tab is clicked
 const SummaryTab   = lazy(() => import("./tabs/SummaryTab").then(m => ({ default: m.SummaryTab })));
@@ -76,8 +77,8 @@ export function MonthlySummaryClient() {
     mutationFn: () => monthlySummaryApi.generate({ 
       year: selectedYear, 
       month: selectedMonth,
-      adjustmentFromPrevious: Number(adjFromPrev) || 0,
-      adjustmentToNext: Number(adjToNext) || 0,
+      adjustmentFromPrevious: parseBanglaNumber(adjFromPrev) || 0,
+      adjustmentToNext: parseBanglaNumber(adjToNext) || 0,
     }),
     onSuccess: () => {
       toast.success("Monthly summary generated!");
@@ -105,9 +106,22 @@ export function MonthlySummaryClient() {
     setShowClearConfirm(false);
   };
 
+  // Fetch previous month's compiled summary to get adjustmentToNext
+  const prevMonth = selectedMonth === 1 ? 12 : selectedMonth - 1;
+  const prevYear = selectedMonth === 1 ? selectedYear - 1 : selectedYear;
+  
+  const { data: prevSummary } = useQuery({
+    queryKey: ["monthly-summary-sheet", prevYear, prevMonth],
+    queryFn: async () => {
+      const res = await monthlySummaryApi.getByMonth(prevYear, prevMonth);
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
   const handleOpenGenerateModal = () => {
-    console.log("Opening generate modal...", { summary });
-    setAdjFromPrev(summary?.isGenerated ? String(summary.adjustmentFromPrevious || 0) : "0");
+    setAdjFromPrev(summary?.isGenerated ? String(summary.adjustmentFromPrevious || 0) : String(prevSummary?.adjustmentToNext || 0));
     setAdjToNext(summary?.isGenerated ? String(summary.adjustmentToNext || 0) : "0");
     setShowGenerateModal(true);
   };
@@ -487,15 +501,12 @@ export function MonthlySummaryClient() {
         />
       )}
 
-      <ConfirmModal
+      <DeleteConfirmModal
         isOpen={showClearConfirm}
         onClose={() => setShowClearConfirm(false)}
         onConfirm={handleClearConfirm}
         title="Clear Monthly Summary Sheet"
         message="Are you sure you want to clear this month's compiled summary? Raw data (meals, bazaar, payments) will NOT be deleted, but the calculations will be cleared."
-        confirmText="Confirm Clear"
-        cancelText="Cancel"
-        variant="danger"
         isLoading={deleteMutation.isPending}
       />
 
@@ -562,7 +573,8 @@ function GenerateSummaryModal({
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">৳</span>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={adjFromPrev}
                   onChange={(e) => onAdjFromPrevChange(e.target.value)}
                   className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
@@ -579,7 +591,8 @@ function GenerateSummaryModal({
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">৳</span>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={adjToNext}
                   onChange={(e) => onAdjToNextChange(e.target.value)}
                   className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"

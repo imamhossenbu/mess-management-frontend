@@ -23,7 +23,7 @@ export function SummaryTab({ summary }: SummaryTabProps) {
               <th className="pb-3 pl-2">Member</th>
               <th className="pb-3 text-center">Meals</th>
               <th className="pb-3 text-right">Meal Cost</th>
-              <th className="pb-3 text-right">Utility</th>
+              <th className="pb-3 text-right print:hidden">Utility</th>
               <th className="pb-3 text-right">Total Bill</th>
               <th className="pb-3 text-right">Deposited</th>
               <th className="pb-3 text-right pr-2">Status</th>
@@ -38,7 +38,7 @@ export function SummaryTab({ summary }: SummaryTabProps) {
                 </td>
                 <td className="py-3.5 text-center font-medium text-slate-600">{u.totalMeal}</td>
                 <td className="py-3.5 text-right text-slate-600">৳ {Number(u.mealBill).toFixed(2)}</td>
-                <td className="py-3.5 text-right text-slate-600">৳ {Number(u.utilityShare).toFixed(2)}</td>
+                <td className="py-3.5 text-right text-slate-600 print:hidden">৳ {Number(u.utilityShare).toFixed(2)}</td>
                 <td className="py-3.5 text-right font-semibold text-slate-700">৳ {Number(u.totalBill).toFixed(2)}</td>
                 <td className="py-3.5 text-right text-emerald-600 font-semibold">
                   ৳ {Number(u.totalPaid).toLocaleString()}
@@ -66,7 +66,7 @@ export function SummaryTab({ summary }: SummaryTabProps) {
               <td className="py-3 pl-2">TOTAL</td>
               <td className="py-3 text-center">{summary.totalMeals}</td>
               <td className="py-3 text-right">৳ {Number(summary.totalMealBill).toLocaleString()}</td>
-              <td className="py-3 text-right">৳ {Number(summary.totalUtilityBill).toLocaleString()}</td>
+              <td className="py-3 text-right print:hidden">৳ {Number(summary.totalUtilityBill).toLocaleString()}</td>
               <td className="py-3 text-right">৳ {Number(summary.totalBill).toLocaleString()}</td>
               <td className="py-3 text-right text-emerald-600">৳ {Number(summary.totalPaid).toLocaleString()}</td>
               <td className="py-3 text-right pr-2 text-rose-600">৳ {Number(summary.totalDue).toLocaleString()}</td>

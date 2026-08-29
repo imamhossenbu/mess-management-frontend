@@ -15,6 +15,8 @@ import {
   Sun,
   Moon,
   FileText,
+  DollarSign,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { HeroBanner } from "../shared/HeroBanner";
@@ -85,7 +87,7 @@ export default function ManagerDashboard({
       label: "Current Meal Rate",
       value: `৳ ${Number(safeStats.mealRate ?? 0).toFixed(2)}`,
       description: "Per meal cost",
-      icon: Percent,
+      icon: TrendingUp,
       iconBg: "bg-indigo-100",
       iconColor: "text-indigo-600",
     },
@@ -94,6 +96,42 @@ export default function ManagerDashboard({
       value: `৳ ${Number(utilityPerPerson).toFixed(2)}`,
       description: `Total: ৳${(safeStats.totalUtilityCostThisMonth ?? 0).toLocaleString()}`,
       icon: FileText,
+      iconBg: "bg-teal-100",
+      iconColor: "text-teal-600",
+    },
+  ];
+
+  const myStats = safeStats.myStats || {
+    totalMealThisMonth: 0,
+    mealBillThisMonth: 0,
+    utilityShareThisMonth: 0,
+    totalBillThisMonth: 0,
+    totalPaidThisMonth: 0,
+    currentBalance: 0,
+  };
+
+  const personalStats = [
+    {
+      label: "My Balance",
+      value: `৳ ${Math.abs(myStats.currentBalance ?? 0).toLocaleString()}`,
+      description: (myStats.currentBalance ?? 0) < 0 ? "You owe" : "You have credit",
+      icon: Wallet,
+      iconBg: (myStats.currentBalance ?? 0) < 0 ? "bg-rose-100" : "bg-emerald-100",
+      iconColor: (myStats.currentBalance ?? 0) < 0 ? "text-rose-600" : "text-emerald-600",
+    },
+    {
+      label: "My Meals",
+      value: myStats.totalMealThisMonth ?? 0,
+      description: "Total meals this month",
+      icon: Utensils,
+      iconBg: "bg-indigo-100",
+      iconColor: "text-indigo-600",
+    },
+    {
+      label: "My Payments",
+      value: `৳ ${(myStats.totalPaidThisMonth ?? 0).toLocaleString()}`,
+      description: "Deposits this month",
+      icon: CreditCard,
       iconBg: "bg-teal-100",
       iconColor: "text-teal-600",
     },
@@ -166,6 +204,17 @@ export default function ManagerDashboard({
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {statCards.map((card, i) => (
             <StatCard key={i} {...card} delay={i} />
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <Wallet className="w-5 h-5 text-indigo-500" /> My Personal Stats
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {personalStats.map((card, i) => (
+            <StatCard key={`personal-${i}`} {...card} delay={i + 0.5} />
           ))}
         </div>
       </div>

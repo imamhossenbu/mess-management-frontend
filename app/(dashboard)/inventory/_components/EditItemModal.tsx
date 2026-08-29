@@ -8,6 +8,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { X, Package, Save } from "lucide-react";
 import toast from "react-hot-toast";
 import { useUpdateInventoryItem } from "@/lib/hooks/useInventory";
+import { parseBanglaNumber } from "@/lib/banglaParser";
 
 const CATEGORIES = [
   "FISH",
@@ -65,7 +66,7 @@ export function EditItemModal({
     const payload = {
       name: formData.name.trim(),
       category: formData.category,
-      minStockLevel: Number(formData.minStockLevel) || 5,
+      minStockLevel: parseBanglaNumber(formData.minStockLevel) || 5,
       isActive: formData.isActive,
     };
 
@@ -175,7 +176,8 @@ export function EditItemModal({
                       Min Stock Level
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       placeholder="5"
                       value={formData.minStockLevel}
                       onChange={(e) =>
@@ -185,7 +187,6 @@ export function EditItemModal({
                         })
                       }
                       className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                      min="0"
                     />
                   </div>
 

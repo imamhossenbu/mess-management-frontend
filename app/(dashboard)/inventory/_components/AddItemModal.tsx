@@ -308,6 +308,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { X, Package, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { useCreateInventoryItem } from "@/lib/hooks/useInventory";
+import { parseBanglaNumber } from "@/lib/banglaParser";
 
 const CATEGORIES = [
   "FISH",
@@ -336,8 +337,8 @@ export function AddItemModal({
   const [formData, setFormData] = useState({
     name: "",
     category: "OTHER",
-    initialQuantity: 0,
-    minStockLevel: 5,
+    initialQuantity: "0",
+    minStockLevel: "5",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -352,8 +353,8 @@ export function AddItemModal({
     const payload = {
       name: formData.name.trim(),
       category: formData.category,
-      initialQuantity: Number(formData.initialQuantity) || 0,
-      minStockLevel: Number(formData.minStockLevel) || 5,
+      initialQuantity: parseBanglaNumber(formData.initialQuantity) || 0,
+      minStockLevel: parseBanglaNumber(formData.minStockLevel) || 5,
     };
 
     setIsSubmitting(true);
@@ -365,8 +366,8 @@ export function AddItemModal({
         setFormData({
           name: "",
           category: "OTHER",
-          initialQuantity: 0,
-          minStockLevel: 5,
+          initialQuantity: "0",
+          minStockLevel: "5",
         });
         setIsSubmitting(false);
       },
@@ -466,17 +467,17 @@ export function AddItemModal({
                         Initial Quantity
                       </label>
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         placeholder="0"
                         value={formData.initialQuantity}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            initialQuantity: Number(e.target.value),
+                            initialQuantity: e.target.value,
                           })
                         }
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                        min="0"
                       />
                     </div>
                     <div>
@@ -484,17 +485,17 @@ export function AddItemModal({
                         Min Stock Level
                       </label>
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         placeholder="5"
                         value={formData.minStockLevel}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            minStockLevel: Number(e.target.value),
+                            minStockLevel: e.target.value,
                           })
                         }
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                        min="0"
                       />
                     </div>
                   </div>

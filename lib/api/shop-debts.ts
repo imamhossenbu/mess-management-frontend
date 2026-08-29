@@ -65,10 +65,12 @@ export const shopDebtsApi = {
   getSummary: () => apiClient.get("/shop-debts/summary"),
 
   // Get monthly data (debts & payments)
-  getMonthlyData: (year?: number, month?: number) => {
+  getMonthlyData: (year?: number, month?: number, startDate?: string, endDate?: string) => {
     const params = new URLSearchParams();
     if (year) params.append("year", year.toString());
     if (month) params.append("month", month.toString());
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
     return apiClient.get(`/shop-debts/monthly?${params.toString()}`);
   },
 

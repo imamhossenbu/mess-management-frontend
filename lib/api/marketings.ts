@@ -41,6 +41,7 @@ export interface CreateMarketingData {
   paymentType?: string;
   items: CreateMarketingItem[];
   note?: string;
+  memberId?: string;
   image?: File;
 }
 
@@ -64,6 +65,7 @@ export const marketingsApi = {
     if (data.date) formData.append("date", data.date);
     if (data.shopName) formData.append("shopName", data.shopName);
     if (data.paymentType) formData.append("paymentType", data.paymentType);
+    if (data.memberId) formData.append("memberId", data.memberId);
     if (data.note) formData.append("note", data.note);
 
     const items = Array.isArray(data.items) ? data.items : [];

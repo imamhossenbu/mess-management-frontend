@@ -9,10 +9,12 @@ import { shopDebtsApi } from "@/lib/api/shop-debts";
 import { Store, Plus, Trash2, ShieldAlert, Check, Banknote, ArrowRight, Edit } from "lucide-react";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
-import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal";
 import { MonthSelector } from "../../marketings/_components/MonthSelector";
 import { AddShopDebtModal } from "./AddShopDebtModal";
 import { AddShopPaymentModal } from "./AddShopPaymentModal";
+import { EditShopDebtModal } from "./EditShopDebtModal";
+import { EditShopPaymentModal } from "./EditShopPaymentModal";
 import { formatBanglaNumber } from "@/lib/banglaParser";
 import { Search } from "lucide-react";
 
@@ -27,10 +29,18 @@ export function ShopDebtsClient() {
   const [formType, setFormType] = useState<FormType>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"DEBT" | "PAYMENT" | null>(null);
+  const [deleteItemName, setDeleteItemName] = useState<string>("");
   
   const [isAddDebtModalOpen, setIsAddDebtModalOpen] = useState(false);
   const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
+  
+  const [editDebt, setEditDebt] = useState<any>(null);
+  const [editPayment, setEditPayment] = useState<any>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
+  
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Fetch global summary
   const { data: summary, isLoading: loadingSummary, refetch: refetchSummary } = useQuery({
@@ -43,9 +53,14 @@ export function ShopDebtsClient() {
 
   // Fetch monthly data
   const { data: monthlyData, isLoading: loadingMonthly, refetch: refetchMonthly } = useQuery({
-    queryKey: ["shop-debts-monthly", selectedYear, selectedMonth],
+    queryKey: ["shop-debts-monthly", selectedYear, selectedMonth, startDate, endDate],
     queryFn: async () => {
-      const res = await shopDebtsApi.getMonthlyData(selectedYear, selectedMonth);
+      const res = await shopDebtsApi.getMonthlyData(
+        startDate && endDate ? undefined : selectedYear, 
+        startDate && endDate ? undefined : selectedMonth, 
+        startDate || undefined, 
+        endDate || undefined
+      );
       return res.data;
     },
   });
@@ -83,6 +98,7 @@ export function ShopDebtsClient() {
       }
       setDeleteConfirmId(null);
       setDeleteType(null);
+      setDeleteItemName("");
     }
   };
 
@@ -115,12 +131,30 @@ export function ShopDebtsClient() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3">
-          <MonthSelector
-            selectedYear={selectedYear}
-            selectedMonth={selectedMonth}
-            setSelectedYear={setSelectedYear}
-            setSelectedMonth={setSelectedMonth}
-          />
+          <div className="flex gap-2 items-center bg-white border border-slate-200 rounded-xl px-2">
+            <span className="text-xs font-semibold text-slate-500">Custom:</span>
+            <input 
+              type="date" 
+              value={startDate} 
+              onChange={e => setStartDate(e.target.value)}
+              className="px-2 py-1.5 text-xs focus:outline-none bg-transparent"
+            />
+            <span className="text-slate-300">-</span>
+            <input 
+              type="date" 
+              value={endDate} 
+              onChange={e => setEndDate(e.target.value)}
+              className="px-2 py-1.5 text-xs focus:outline-none bg-transparent"
+            />
+          </div>
+          {!(startDate && endDate) && (
+            <MonthSelector
+              selectedYear={selectedYear}
+              selectedMonth={selectedMonth}
+              setSelectedYear={setSelectedYear}
+              setSelectedMonth={setSelectedMonth}
+            />
+          )}
           <div className="flex gap-2">
             <button
               onClick={() => setIsAddDebtModalOpen(true)}
@@ -153,6 +187,25 @@ export function ShopDebtsClient() {
           refetchSummary();
           refetchMonthly();
         }} 
+      />
+
+      <EditShopDebtModal
+        isOpen={!!editDebt}
+        debt={editDebt}
+        onClose={() => setEditDebt(null)}
+        onSuccess={() => {
+          refetchSummary();
+          refetchMonthly();
+        }}
+      />
+      <EditShopPaymentModal
+        isOpen={!!editPayment}
+        payment={editPayment}
+        onClose={() => setEditPayment(null)}
+        onSuccess={() => {
+          refetchSummary();
+          refetchMonthly();
+        }}
       />
 
       {/* Global Stats summaries */}
@@ -292,17 +345,29 @@ export function ShopDebtsClient() {
                             </span>
                           </td>
                           <td className="py-3 text-right pr-2">
-                            {/* Removed Edit Button for bulk forms */}
-                            <button
-                              onClick={() => {
-                                setDeleteConfirmId(item.id);
-                                setDeleteType(item.type);
-                              }}
-                              className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
-                              title="Delete Entry"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => {
+                                  if (item.type === "DEBT") setEditDebt(item);
+                                  else setEditPayment(item);
+                                }}
+                                className="p-1.5 text-primary-400 hover:text-primary-600 hover:bg-primary-50 rounded transition cursor-pointer"
+                                title="Edit Entry"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDeleteConfirmId(item.id);
+                                  setDeleteType(item.type);
+                                  setDeleteItemName(item.shopName);
+                                }}
+                                className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                                title="Delete Entry"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -321,15 +386,12 @@ export function ShopDebtsClient() {
         </Card>
       </div>
 
-      <ConfirmModal
+      <DeleteConfirmModal
         isOpen={deleteConfirmId !== null}
-        onClose={() => { setDeleteConfirmId(null); setDeleteType(null); }}
+        onClose={() => { setDeleteConfirmId(null); setDeleteType(null); setDeleteItemName(""); }}
         onConfirm={handleDeleteConfirm}
         title="Delete Ledger Entry"
         message="Are you sure you want to delete this entry? This will update the shop's global balance."
-        confirmText="Delete"
-        cancelText="Cancel"
-        variant="danger"
         isLoading={deleteDebtMutation.isPending || deletePaymentMutation.isPending}
       />
     </div>
