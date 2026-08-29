@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal";
+import { formatBanglaNumber } from "@/lib/banglaParser";
 
 interface MarketingTableProps {
   data: any;
@@ -136,7 +137,7 @@ export function MarketingTable({
                   <td className="py-3">
                     <p className="font-semibold text-slate-800 text-sm">
                       {item.items?.length > 1
-                        ? `${item.items.length} items`
+                        ? `${formatBanglaNumber(item.items.length)} items`
                         : item.items?.[0]?.itemName || "N/A"}
                     </p>
                     {item.shopName && (
@@ -185,7 +186,7 @@ export function MarketingTable({
                     </span>
                   </td>
                   <td className="py-3 text-right font-bold text-slate-800 text-sm">
-                    ৳ {Number(item.totalAmount).toLocaleString()}
+                    ৳ {formatBanglaNumber(Number(item.totalAmount))}
                   </td>
                   <td className="py-3 text-center">
                     <div className="flex items-center justify-center gap-1">

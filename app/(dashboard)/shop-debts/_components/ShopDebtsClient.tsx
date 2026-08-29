@@ -11,6 +11,10 @@ import { format } from "date-fns";
 import toast from "react-hot-toast";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { MonthSelector } from "../../marketings/_components/MonthSelector";
+import { AddShopDebtModal } from "./AddShopDebtModal";
+import { AddShopPaymentModal } from "./AddShopPaymentModal";
+import { formatBanglaNumber } from "@/lib/banglaParser";
+import { Search } from "lucide-react";
 
 type FormType = "DEBT" | "PAYMENT" | null;
 
@@ -23,14 +27,10 @@ export function ShopDebtsClient() {
   const [formType, setFormType] = useState<FormType>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"DEBT" | "PAYMENT" | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
-
-  // Form states
-  const [shopName, setShopName] = useState("Local Shop");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [itemDetails, setItemDetails] = useState("");
-  const [note, setNote] = useState("");
+  
+  const [isAddDebtModalOpen, setIsAddDebtModalOpen] = useState(false);
+  const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch global summary
   const { data: summary, isLoading: loadingSummary, refetch: refetchSummary } = useQuery({
@@ -50,34 +50,6 @@ export function ShopDebtsClient() {
     },
   });
 
-  const createDebtMutation = useMutation({
-    mutationFn: async (data: any) => shopDebtsApi.createDebt(data),
-    onSuccess: () => {
-      toast.success("Shop debt logged!");
-      refetchSummary();
-      refetchMonthly();
-      setFormType(null);
-      resetForm();
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to log debt");
-    },
-  });
-
-  const createPaymentMutation = useMutation({
-    mutationFn: async (data: any) => shopDebtsApi.createPayment(data),
-    onSuccess: () => {
-      toast.success("Payment logged!");
-      refetchSummary();
-      refetchMonthly();
-      setFormType(null);
-      resetForm();
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to log payment");
-    },
-  });
-
   const deleteDebtMutation = useMutation({
     mutationFn: async (id: string) => shopDebtsApi.deleteDebt(id),
     onSuccess: () => {
@@ -87,36 +59,6 @@ export function ShopDebtsClient() {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to delete debt");
-    },
-  });
-
-  const updateDebtMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string, data: any }) => shopDebtsApi.updateDebt(id, data),
-    onSuccess: () => {
-      toast.success("Debt log updated!");
-      refetchSummary();
-      refetchMonthly();
-      setFormType(null);
-      setEditId(null);
-      resetForm();
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to update debt");
-    },
-  });
-
-  const updatePaymentMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string, data: any }) => shopDebtsApi.updatePayment(id, data),
-    onSuccess: () => {
-      toast.success("Payment log updated!");
-      refetchSummary();
-      refetchMonthly();
-      setFormType(null);
-      setEditId(null);
-      resetForm();
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to update payment");
     },
   });
 
@@ -131,76 +73,6 @@ export function ShopDebtsClient() {
       toast.error(err.response?.data?.message || "Failed to delete payment");
     },
   });
-
-  const resetForm = () => {
-    setShopName("Local Shop");
-    setAmount("");
-    setDate(format(new Date(), "yyyy-MM-dd"));
-    setItemDetails("");
-    setNote("");
-    setEditId(null);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!shopName || !amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      toast.error("Please fill in shop name and amount correctly");
-      return;
-    }
-
-    if (formType === "DEBT") {
-      if (editId) {
-        updateDebtMutation.mutate({
-          id: editId,
-          data: {
-            shopName,
-            amount: parseFloat(amount),
-            date,
-            itemDetails: itemDetails || undefined,
-            note: note || undefined,
-          }
-        });
-      } else {
-        createDebtMutation.mutate({
-          shopName,
-          amount: parseFloat(amount),
-          date,
-          itemDetails: itemDetails || undefined,
-          note: note || undefined,
-        });
-      }
-    } else {
-      if (editId) {
-        updatePaymentMutation.mutate({
-          id: editId,
-          data: {
-            shopName,
-            amount: parseFloat(amount),
-            date,
-            note: note || undefined,
-          }
-        });
-      } else {
-        createPaymentMutation.mutate({
-          shopName,
-          amount: parseFloat(amount),
-          date,
-          note: note || undefined,
-        });
-      }
-    }
-  };
-
-  const handleEdit = (item: any) => {
-    setFormType(item.type);
-    setEditId(item.id);
-    setShopName(item.shopName);
-    setAmount(item.amount.toString());
-    setDate(format(new Date(item.date), "yyyy-MM-dd"));
-    setItemDetails(item.itemDetails || "");
-    setNote(item.note || "");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   const handleDeleteConfirm = () => {
     if (deleteConfirmId && deleteType) {
@@ -217,10 +89,16 @@ export function ShopDebtsClient() {
   const isLoading = loadingSummary || loadingMonthly;
 
   // Combine debts and payments into a single ledger array
-  const ledger = [
+  const allLedger = [
     ...(monthlyData?.debts?.map((d: any) => ({ ...d, type: "DEBT" })) || []),
     ...(monthlyData?.payments?.map((p: any) => ({ ...p, type: "PAYMENT" })) || []),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const ledger = allLedger.filter(item => 
+    item.shopName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.itemDetails && item.itemDetails.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (item.note && item.note.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const totalMonthlyDebt = monthlyData?.debts?.reduce((acc: number, d: any) => acc + Number(d.amount), 0) || 0;
   const totalMonthlyPaid = monthlyData?.payments?.reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0;
@@ -245,13 +123,13 @@ export function ShopDebtsClient() {
           />
           <div className="flex gap-2">
             <button
-              onClick={() => { setFormType(formType === "DEBT" ? null : "DEBT"); resetForm(); }}
+              onClick={() => setIsAddDebtModalOpen(true)}
               className="flex items-center gap-2 px-3 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl text-sm font-semibold transition cursor-pointer"
             >
               <Plus className="w-4 h-4" /> Add Debt
             </button>
             <button
-              onClick={() => { setFormType(formType === "PAYMENT" ? null : "PAYMENT"); resetForm(); }}
+              onClick={() => setIsAddPaymentModalOpen(true)}
               className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl text-sm font-semibold transition cursor-pointer"
             >
               <Banknote className="w-4 h-4" /> Pay Shop
@@ -260,102 +138,22 @@ export function ShopDebtsClient() {
         </div>
       </div>
 
-      {/* Record Form Modal */}
-      {formType && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <Card className="w-full max-w-2xl p-6 border border-slate-100 bg-white shadow-xl animate-in fade-in zoom-in duration-200">
-            <h2 className={`text-base font-bold mb-4 flex items-center gap-2 ${formType === "DEBT" ? "text-rose-600" : "text-emerald-600"}`}>
-              {formType === "DEBT" ? <Plus className="w-5 h-5" /> : <Banknote className="w-5 h-5" />}
-              {editId 
-                ? (formType === "DEBT" ? "Edit Shop Debt" : "Edit Shop Payment")
-                : (formType === "DEBT" ? "Log New Shop Debt" : "Log Payment to Shop")}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Shop Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Local Shop"
-                    value={shopName}
-                    onChange={(e) => setShopName(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Amount (৳)</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 1500"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Date</label>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                    required
-                  />
-                </div>
-
-                {formType === "DEBT" && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Items purchased</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Egg, Potato, Soap"
-                      value={itemDetails}
-                      onChange={(e) => setItemDetails(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Note (Optional)</label>
-                <input
-                  type="text"
-                  placeholder={formType === "DEBT" ? "Optional descriptions" : "e.g. Paid via bKash"}
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setFormType(null)}
-                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createDebtMutation.isPending || createPaymentMutation.isPending || updateDebtMutation.isPending || updatePaymentMutation.isPending}
-                  className={`px-6 py-2 text-white rounded-xl text-sm font-semibold shadow transition cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed ${
-                    formType === "DEBT" ? "bg-rose-500 hover:bg-rose-600" : "bg-emerald-500 hover:bg-emerald-600"
-                  }`}
-                >
-                  {createDebtMutation.isPending || createPaymentMutation.isPending || updateDebtMutation.isPending || updatePaymentMutation.isPending
-                    ? "Submitting..."
-                    : editId ? "Update" : "Submit"}
-                </button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      )}
+      <AddShopDebtModal 
+        isOpen={isAddDebtModalOpen} 
+        onClose={() => {
+          setIsAddDebtModalOpen(false);
+          refetchSummary();
+          refetchMonthly();
+        }} 
+      />
+      <AddShopPaymentModal 
+        isOpen={isAddPaymentModalOpen} 
+        onClose={() => {
+          setIsAddPaymentModalOpen(false);
+          refetchSummary();
+          refetchMonthly();
+        }} 
+      />
 
       {/* Global Stats summaries */}
       <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
@@ -365,7 +163,7 @@ export function ShopDebtsClient() {
         <Card className="p-5 bg-white border border-slate-100 flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Credit This Month</p>
-            <p className="text-2xl font-bold text-slate-800 mt-1">৳ {Number(totalMonthlyDebt ?? 0).toLocaleString()}</p>
+            <p className="text-2xl font-bold text-slate-800 mt-1">৳ {formatBanglaNumber(Number(totalMonthlyDebt ?? 0))}</p>
           </div>
           <div className="p-3 bg-slate-50 text-slate-500 rounded-2xl">
             <Store className="w-6 h-6" />
@@ -375,7 +173,7 @@ export function ShopDebtsClient() {
         <Card className="p-5 bg-white border border-slate-100 flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Paid This Month</p>
-            <p className="text-2xl font-bold text-emerald-600 mt-1">৳ {Number(totalMonthlyPaid ?? 0).toLocaleString()}</p>
+            <p className="text-2xl font-bold text-emerald-600 mt-1">৳ {formatBanglaNumber(Number(totalMonthlyPaid ?? 0))}</p>
           </div>
           <div className="p-3 bg-emerald-50 text-emerald-500 rounded-2xl">
             <Check className="w-6 h-6" />
@@ -385,7 +183,7 @@ export function ShopDebtsClient() {
         <Card className="p-5 bg-white border border-slate-100 flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Outstanding Global Due</p>
-            <p className="text-2xl font-bold text-rose-600 mt-1">৳ {Number(summary?.currentDue ?? 0).toLocaleString()}</p>
+            <p className="text-2xl font-bold text-rose-600 mt-1">৳ {formatBanglaNumber(Number(summary?.currentDue ?? 0))}</p>
           </div>
           <div className="p-3 bg-rose-50 text-rose-500 rounded-2xl">
             <ShieldAlert className="w-6 h-6" />
@@ -410,14 +208,14 @@ export function ShopDebtsClient() {
                   <div key={idx} className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0">
                     <div>
                       <p className="text-sm font-semibold text-slate-800">{shop.shopName}</p>
-                      <p className="text-[10px] text-slate-400">Total Bought: ৳{Number(shop.totalDebt).toLocaleString()}</p>
-                      <p className="text-[10px] text-slate-400">Total Paid: ৳{Number(shop.totalPaid).toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-400">Total Bought: ৳{formatBanglaNumber(Number(shop.totalDebt))}</p>
+                      <p className="text-[10px] text-slate-400">Total Paid: ৳{formatBanglaNumber(Number(shop.totalPaid))}</p>
                     </div>
                     <div className="text-right">
                       <span className={`px-2 py-0.5 rounded-lg text-xs font-bold ${
                         Number(shop.currentDue) > 0 ? "bg-rose-50 text-rose-500" : "bg-emerald-50 text-emerald-600"
                       }`}>
-                        ৳{Number(shop.currentDue).toLocaleString()} {Number(shop.currentDue) > 0 ? "due" : "clear"}
+                        ৳{formatBanglaNumber(Number(shop.currentDue))} {Number(shop.currentDue) > 0 ? "due" : "clear"}
                       </span>
                     </div>
                   </div>
@@ -432,9 +230,21 @@ export function ShopDebtsClient() {
         {/* Shop Ledger for Selected Month */}
         <Card className="col-span-2 p-6 bg-white border border-slate-100 overflow-hidden flex flex-col justify-between">
           <div>
-            <h2 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <Store className="w-5 h-5 text-primary-500" /> Monthly Ledger ({monthlyData?.month})
-            </h2>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+              <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                <Store className="w-5 h-5 text-primary-500" /> Monthly Ledger ({monthlyData?.month})
+              </h2>
+              <div className="relative w-full sm:w-64">
+                <input
+                  type="text"
+                  placeholder="Search products, shop..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
+                />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              </div>
+            </div>
 
             {isLoading ? (
               <div className="py-8 flex justify-center">
@@ -478,17 +288,11 @@ export function ShopDebtsClient() {
                           </td>
                           <td className="py-3 text-right font-bold text-sm">
                             <span className={item.type === "DEBT" ? "text-rose-600" : "text-emerald-600"}>
-                              {item.type === "DEBT" ? "+" : "-"} ৳{Number(item.amount).toLocaleString()}
+                              {item.type === "DEBT" ? "+" : "-"} ৳ {formatBanglaNumber(Number(item.amount))}
                             </span>
                           </td>
                           <td className="py-3 text-right pr-2">
-                            <button
-                              onClick={() => handleEdit(item)}
-                              className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition cursor-pointer mr-1"
-                              title="Edit Entry"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
+                            {/* Removed Edit Button for bulk forms */}
                             <button
                               onClick={() => {
                                 setDeleteConfirmId(item.id);

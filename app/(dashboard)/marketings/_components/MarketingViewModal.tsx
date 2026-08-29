@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
+import { formatBanglaNumber } from "@/lib/banglaParser";
 
 interface MarketingViewModalProps {
   isOpen: boolean;
@@ -198,10 +199,10 @@ export function MarketingViewModal({
                       <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                         <p className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                           <Package className="w-4 h-4" />
-                          Items ({data.items?.length || 0})
+                          Items ({formatBanglaNumber(data.items?.length || 0)})
                         </p>
                         <p className="text-xs text-slate-400">
-                          Total: ৳ {Number(data.totalAmount).toLocaleString()}
+                          Total: ৳ {formatBanglaNumber(Number(data.totalAmount))}
                         </p>
                       </div>
                       <div className="divide-y divide-slate-50">
@@ -216,7 +217,7 @@ export function MarketingViewModal({
                               </p>
                             </div>
                             <p className="text-base font-bold text-slate-800">
-                              ৳{item.totalPrice.toFixed(2)}
+                              ৳{formatBanglaNumber(item.totalPrice)}
                             </p>
                           </div>
                         ))}
@@ -230,12 +231,12 @@ export function MarketingViewModal({
                           Total Amount
                         </p>
                         <p className="text-xs text-slate-500">
-                          {data.items?.length || 0} items
+                          {formatBanglaNumber(data.items?.length || 0)} items
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-3xl font-bold text-primary-700">
-                          ৳ {Number(data.totalAmount).toLocaleString()}
+                          ৳ {formatBanglaNumber(Number(data.totalAmount))}
                         </p>
                         <p className="text-xs text-primary-400">
                           {data.paymentType === "CASH"

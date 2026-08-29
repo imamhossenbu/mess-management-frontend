@@ -53,6 +53,10 @@ export const shopDebtsApi = {
   createDebt: (data: CreateShopDebtData) =>
     apiClient.post<ShopDebt>("/shop-debts/debt", data),
 
+  // Create bulk debt
+  createBulkDebt: (data: { items: CreateShopDebtData[] }) =>
+    apiClient.post<ShopDebt[]>("/shop-debts/debt/bulk", data),
+
   // Create payment
   createPayment: (data: CreateShopPaymentData) =>
     apiClient.post<ShopPayment>("/shop-debts/payment", data),

@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import toast from "react-hot-toast";
 import { useCreateMarketing } from "@/lib/hooks/useMarketings";
 import { useUsers } from "@/lib/hooks/useUsers";
+import { parseBanglaNumber } from "@/lib/banglaParser";
 import Image from "next/image";
 
 const UNITS = ["KG", "GRAM", "LITER", "ML", "PIECE", "DOZEN", "PACKET", "BOTTLE"];
@@ -22,10 +23,7 @@ interface MarketingFormProps {
 
 interface FormItem {
   itemName: string;
-  quantity: number;
-  unit: string;
-  price: number;
-  totalPrice: number;
+  totalPrice: number | string;
   note?: string;
 }
 
@@ -46,7 +44,7 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
     items: [
       {
         itemName: "",
-        totalPrice: 0,
+        totalPrice: "",
         note: "",
       } as FormItem,
     ],
@@ -110,7 +108,7 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
         ...formData.items,
         {
           itemName: "",
-          totalPrice: 0,
+          totalPrice: "",
           note: ""
         } as FormItem,
       ],
@@ -135,16 +133,16 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
     }
 
     const invalidItems = formData.items.filter(
-      (item) => !item.itemName.trim() || item.totalPrice <= 0
+      (item) => !item.itemName.trim() || parseBanglaNumber(item.totalPrice) <= 0
     );
     if (invalidItems.length > 0) {
-      toast.error("Please fill in all item names and amounts");
+      toast.error("Please fill in all item names and valid amounts");
       return;
     }
 
     const itemsArray = formData.items.map((item) => ({
       itemName: item.itemName.trim(),
-      totalPrice: Number(item.totalPrice),
+      totalPrice: parseBanglaNumber(item.totalPrice),
       note: item.note || undefined,
     }));
 
@@ -340,14 +338,13 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
 
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   placeholder="Amount (TK)"
-                  value={item.totalPrice || ""}
-                  onChange={(e) => handleItemChange(index, "totalPrice", parseFloat(e.target.value) || 0)}
+                  value={item.totalPrice}
+                  onChange={(e) => handleItemChange(index, "totalPrice", e.target.value)}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
                   required
-                  min="0"
-                  step="0.01"
                 />
                 
                 <button
@@ -385,7 +382,7 @@ export function MarketingForm({ onSuccess, onCancel }: MarketingFormProps) {
               <p className="text-sm text-slate-500">{formData.items.length} items</p>
             </div>
             <p className="text-2xl font-bold text-primary-700">
-              ৳ {formData.items.reduce((sum, item) => sum + item.totalPrice, 0).toFixed(2)}
+              ৳ {formData.items.reduce((sum, item) => sum + parseBanglaNumber(item.totalPrice), 0).toFixed(2)}
             </p>
           </div>
         </div>
