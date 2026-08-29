@@ -39,8 +39,7 @@ export function ShopDebtsClient() {
 
   const [searchQuery, setSearchQuery] = useState("");
   
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [filterDate, setFilterDate] = useState("");
 
   // Fetch global summary
   const { data: summary, isLoading: loadingSummary, refetch: refetchSummary } = useQuery({
@@ -53,13 +52,13 @@ export function ShopDebtsClient() {
 
   // Fetch monthly data
   const { data: monthlyData, isLoading: loadingMonthly, refetch: refetchMonthly } = useQuery({
-    queryKey: ["shop-debts-monthly", selectedYear, selectedMonth, startDate, endDate],
+    queryKey: ["shop-debts-monthly", selectedYear, selectedMonth, filterDate],
     queryFn: async () => {
       const res = await shopDebtsApi.getMonthlyData(
-        startDate && endDate ? undefined : selectedYear, 
-        startDate && endDate ? undefined : selectedMonth, 
-        startDate || undefined, 
-        endDate || undefined
+        filterDate ? undefined : selectedYear, 
+        filterDate ? undefined : selectedMonth, 
+        filterDate || undefined, 
+        filterDate || undefined
       );
       return res.data;
     },
@@ -132,27 +131,20 @@ export function ShopDebtsClient() {
 
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <div className="flex gap-2 items-center bg-white border border-slate-200 rounded-xl px-2">
-            <span className="text-xs font-semibold text-slate-500">Custom:</span>
+            <span className="text-xs font-semibold text-slate-500">Date:</span>
             <input 
               type="date" 
-              value={startDate} 
-              onChange={e => setStartDate(e.target.value)}
-              className="px-2 py-1.5 text-xs focus:outline-none bg-transparent"
-            />
-            <span className="text-slate-300">-</span>
-            <input 
-              type="date" 
-              value={endDate} 
-              onChange={e => setEndDate(e.target.value)}
+              value={filterDate} 
+              onChange={e => setFilterDate(e.target.value)}
               className="px-2 py-1.5 text-xs focus:outline-none bg-transparent"
             />
           </div>
-          {!(startDate && endDate) && (
+          {!filterDate && (
             <MonthSelector
-              selectedYear={selectedYear}
               selectedMonth={selectedMonth}
-              setSelectedYear={setSelectedYear}
-              setSelectedMonth={setSelectedMonth}
+              selectedYear={selectedYear}
+              onMonthChange={setSelectedMonth}
+              onYearChange={setSelectedYear}
             />
           )}
           <div className="flex gap-2">
